@@ -1,0 +1,163 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% from 'admin/macros.html.twig' import label, time %}
+
+{% block title %}Storage{% endblock %}
+
+{% block breadcrumb %}
+    <h2>Storage Location Configuration</h2>
+    <ol class="breadcrumb">
+        <li>
+            <a href="{{ path('admin_homepage') }}">Admin</a>
+        </li>
+        <li>
+            Configuration
+        </li>
+        <li>
+            Storage
+        </li>
+        <li class="active">
+            <strong>File Storage</strong>
+        </li>
+    </ol>
+{% endblock breadcrumb %}
+
+{% block breadcrumb_actions %}
+{% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
+    <div class="title-action">
+        <a class="btn btn-primary btn-sm" href="{{ path('admin_create_storage') }}">
+            <i class="fa fa-plus"></i> Add Storage
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Look Up a Storage Item</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form class="form-inline" action="{{ path('admin_search_storage') }}">
+                        <div class="form-group">
+                            <label class="sr-only" for="search">Search storage files</label>
+                            <div class="input-group">
+                                <input type="search" class="form-control" id="search" name="search" placeholder="Search storage files" />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Go</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Storages</h5>
+                    <div class="pull-right">
+                        <a href="{{ path('admin_list_storage_policies') }}" class="btn btn-xs btn-white">
+                            Storage File Policies
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Adapter Options</th>
+                                <th>
+                                    Default Write Location
+                                    <span class="fa fa-question-circle" data-toggle="tooltip" title="The default write policy must have at least one default write location."></span>
+                                </th>
+                                <th>Created</th>
+                                {% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
+                                <th class="text-right">Actions</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for storage in storages %}
+                            <tr>
+                                <td>
+                                    <a href="{{ path('admin_show_storage', {'id': storage.id}) }}" title="{{ storage.slug }}">
+                                        {{ storage.name }}
+                                    </a>
+                                    <br />
+                                    <br />
+                                    <dl class="dl-horizontal">
+                                        <dt>Files</dt>
+                                        <dd>{{ storageCounter.statsByStorage(storage)['file_count'] }}</dd>
+
+                                        <dt>Usage</dt>
+                                        <dd>{{ storageCounter.statsByStorage(storage)['file_size']|format_bytes }}</dd>
+                                    </dl>
+                                </td>
+                                <td>
+                                    <table class="table table-condensed">
+                                        <thead>
+                                        <tr>
+                                            <th colspan="2">{{ storage.adapterType }}</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for key, value in storage.adapterOptions if key != 'class'%}
+                                            <tr>
+                                                <td><strong>{{ key }}</strong></td>
+                                                <td>
+                                                    {% if key not in adapterResolver.configurationByClass(storage.adapterOptions['class']).protectedOptions %}
+                                                        {{ value }}
+                                                    {% else %}
+                                                        <span title="Redacted">************</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <td>
+                                    {{ label(storage.active ? 'Yes' : 'No', storage.active ? 'success' : 'warning') }}
+                                    {% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
+                                    &nbsp;&nbsp;&nbsp;
+                                    {% if not storage.active %}
+                                        <a href="{{ path('admin_activate_storage', {'id': storage.id}) }}">
+                                            Activate
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ path('admin_deactivate_storage', {'id': storage.id}) }}">
+                                            Disable
+                                        </a>
+                                    {% endif %}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ time(storage.createdAt) }}
+                                </td>
+                                {% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
+                                <td class="text-right">
+                                    <a class="btn btn-white btn-xs" href="{{ path('admin_edit_storage', {'id': storage.id}) }}">
+                                        Edit
+                                    </a>
+                                    <a class="btn btn-white btn-xs" href="{{ path('admin_delete_storage', {'id': storage.id}) }}">
+                                        Delete
+                                    </a>
+                                </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
