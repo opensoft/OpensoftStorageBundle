@@ -33,7 +33,7 @@ class StorageController extends Controller
     const FILES_PER_PAGE = 30;
 
     /**
-     * @Route("/admin/storage", name="admin_list_storages")
+     * @Route("/admin/storage", name="opensoft_storage_list_storages")
      */
     public function listAction()
     {
@@ -47,7 +47,7 @@ class StorageController extends Controller
     }
 
     /**
-     * @Route("/admin/storage/search", name="admin_search_storage")
+     * @Route("/admin/storage/search", name="opensoft_storage_search_storage")
      *
      * @param Request $request
      * @return RedirectResponse
@@ -61,10 +61,10 @@ class StorageController extends Controller
             if (!$storageFile) {
                 $this->addFlash('info', sprintf("Could not find storage file with ID '%s'", $search));
 
-                return $this->redirectToRoute('admin_list_storages');
+                return $this->redirectToRoute('opensoft_storage_list_storages');
             }
 
-            return $this->redirectToRoute('admin_show_storage_file', ['id' => $storageFile->getId()]);
+            return $this->redirectToRoute('opensoft_storage_show_storage_file', ['id' => $storageFile->getId()]);
         }
 
         if (is_string($search)) {
@@ -73,20 +73,20 @@ class StorageController extends Controller
             if (!$storageFile) {
                 $this->addFlash('info', sprintf("Could not find storage file with key '%s'", $search));
 
-                return $this->redirectToRoute('admin_list_storages');
+                return $this->redirectToRoute('opensoft_storage_list_storages');
             }
 
-            return $this->redirectToRoute('admin_show_storage_file', ['id' => $storageFile->getId()]);
+            return $this->redirectToRoute('opensoft_storage_show_storage_file', ['id' => $storageFile->getId()]);
         }
 
         $this->addFlash('info', sprintf("Could not find storage file with search term '%s'", $search));
 
-        return $this->redirectToRoute('admin_list_storages');
+        return $this->redirectToRoute('opensoft_storage_list_storages');
     }
 
     /**
-     * @Route("/admin/storage/create", name="admin_create_storage")
-     * @Security("hasRole('ROLE_ADMIN_STORAGE_MANAGER')")
+     * @Route("/admin/storage/create", name="opensoft_storage_create_storage")
+     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Request $request
      * @return Response|RedirectResponse
@@ -97,7 +97,7 @@ class StorageController extends Controller
     }
 
     /**
-     * @Route("/admin/storage/{id}", name="admin_show_storage", requirements={"id" = "\d+"})
+     * @Route("/admin/storage/{id}", name="opensoft_storage_show_storage", requirements={"id" = "\d+"})
      *
      * @param Storage $storage
      * @param Request $request
@@ -134,14 +134,14 @@ class StorageController extends Controller
             'fileCount' => $stats['file_count'],
             'fileSize' => $stats['file_size'],
             'fileCountByType' => $this->getDoctrine()->getRepository(StorageFile::class)->statsByStorageGroupedByType($storage),
-            'fileTypes' => StorageFile::$types,
+            'fileTypes' => $this->get('opensoft_storage.storage_type_provider')->getTypes(),
             'policies' => $this->getDoctrine()->getRepository(StoragePolicy::class)->findAllIndexedByType()
         ]);
     }
 
     /**
-     * @Route("/admin/storage/{id}/edit", name="admin_edit_storage", requirements={"id" = "\d+"})
-     * @Security("hasRole('ROLE_ADMIN_STORAGE_MANAGER')")
+     * @Route("/admin/storage/{id}/edit", name="opensoft_storage_edit_storage", requirements={"id" = "\d+"})
+     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Storage $storage
      * @param Request $request
@@ -153,8 +153,8 @@ class StorageController extends Controller
     }
 
     /**
-     * @Route("/admin/storage/{id}/activate", name="admin_activate_storage", requirements={"id" = "\d+"})
-     * @Security("hasRole('ROLE_ADMIN_STORAGE_MANAGER')")
+     * @Route("/admin/storage/{id}/activate", name="opensoft_storage_activate_storage", requirements={"id" = "\d+"})
+     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Storage $storage
      * @return RedirectResponse
@@ -165,12 +165,12 @@ class StorageController extends Controller
 
         $this->persist($storage, true);
 
-        return $this->redirectToRoute('admin_list_storages');
+        return $this->redirectToRoute('opensoft_storage_list_storages');
     }
 
     /**
-     * @Route("/admin/storage/{id}/deactivate", name="admin_deactivate_storage", requirements={"id" = "\d+"})
-     * @Security("hasRole('ROLE_ADMIN_STORAGE_MANAGER')")
+     * @Route("/admin/storage/{id}/deactivate", name="opensoft_storage_deactivate_storage", requirements={"id" = "\d+"})
+     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Storage $storage
      * @return RedirectResponse
@@ -181,18 +181,18 @@ class StorageController extends Controller
         if (count($activeStorages) == 1) {
             $this->addFlash('danger', 'There must be at least one active storage');
 
-            return $this->redirectToRoute('admin_list_storages');
+            return $this->redirectToRoute('opensoft_storage_list_storages');
         }
 
         $storage->setActive(false);
         $this->persist($storage, true);
 
-        return $this->redirectToRoute('admin_list_storages');
+        return $this->redirectToRoute('opensoft_storage_list_storages');
     }
 
     /**
-     * @Route("/admin/storage/{id}/delete", name="admin_delete_storage", requirements={"id" = "\d+"})
-     * @Security("hasRole('ROLE_ADMIN_STORAGE_MANAGER')")
+     * @Route("/admin/storage/{id}/delete", name="opensoft_storage_delete_storage", requirements={"id" = "\d+"})
+     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Storage $storage
      * @return RedirectResponse
@@ -204,7 +204,7 @@ class StorageController extends Controller
         if ($stats['file_count'] > 0) {
             $this->addFlash('error', 'This storage still has files associated with it.  Please migrate them to another storage location before deleting this one.');
 
-            return $this->redirectToRoute('admin_list_storages');
+            return $this->redirectToRoute('opensoft_storage_list_storages');
         }
 
         $em = $doctrine->getManager();
@@ -212,27 +212,28 @@ class StorageController extends Controller
         $em->remove($storage);
         $em->flush();
 
-        return $this->redirectToRoute('admin_list_storages');
+        return $this->redirectToRoute('opensoft_storage_list_storages');
     }
 
     /**
-     * @Route("/admin/storage/policies", name="admin_list_storage_policies")
+     * @Route("/admin/storage/policies", name="opensoft_storage_list_storage_policies")
      *
      * @return Response
      */
     public function listPoliciesAction()
     {
         $policies = $this->getDoctrine()->getRepository(StoragePolicy::class)->findAllIndexedByType();
+        $types = $this->get('opensoft_storage.storage_type_provider')->getTypes();
 
         return $this->render('@OpensoftStorage/storage/list_policies.html.twig', [
-            'types' => StorageFile::$types,
+            'types' => $types,
             'policies' => $policies
         ]);
     }
 
     /**
-     * @Route("/admin/storage/policies/{type}/create", name="admin_create_storage_policy", requirements={"type" = "\d+"})
-     * @Security("hasRole('ROLE_ADMIN_STORAGE_MANAGER')")
+     * @Route("/admin/storage/policies/{type}/create", name="opensoft_storage_create_storage_policy", requirements={"type" = "\d+"})
+     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Request $request
      * @param integer $type
@@ -240,6 +241,11 @@ class StorageController extends Controller
      */
     public function createPolicyAction(Request $request, $type)
     {
+        $availableTypes = $this->get('opensoft_storage.storage_type_provider')->getTypes();
+        if (!isset($availableTypes[$type])) {
+            throw $this->createNotFoundException(sprintf("Type '%d' is not a valid type", $type));
+        }
+
         $storagePolicy = new StoragePolicy();
         $storagePolicy->setType($type);
         $form = $this->createForm(StoragePolicyFormType::class, $storagePolicy);
@@ -248,21 +254,21 @@ class StorageController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
             $this->persist($storagePolicy, true);
 
-            $this->addFlash('success', sprintf('Storage File Policy created for %s', StorageFile::$types[$type]));
+            $this->addFlash('success', sprintf('Storage File Policy created for %s', $availableTypes[$type]));
 
-            return $this->redirectToRoute('admin_list_storage_policies');
+            return $this->redirectToRoute('opensoft_storage_list_storage_policies');
         }
 
         return $this->render('@OpensoftStorage/storage/create_policy.html.twig', [
-            'types' => StorageFile::$types,
+            'types' => $availableTypes,
             'policy' => $storagePolicy,
             'form' => $form->createView()
         ]);
     }
 
     /**
-     * @Route("/admin/storage/policies/{id}/edit", name="admin_edit_storage_policy", requirements={"id" = "\d+"})
-     * @Security("hasRole('ROLE_ADMIN_STORAGE_MANAGER')")
+     * @Route("/admin/storage/policies/{id}/edit", name="opensoft_storage_edit_storage_policy", requirements={"id" = "\d+"})
+     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Request $request
      * @param StoragePolicy $storagePolicy
@@ -270,27 +276,28 @@ class StorageController extends Controller
      */
     public function editPolicyAction(Request $request, StoragePolicy $storagePolicy)
     {
+        $availableTypes = $this->get('opensoft_storage.storage_type_provider')->getTypes();
         $form = $this->createForm(StoragePolicyFormType::class, $storagePolicy);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->persist($storagePolicy, true);
 
-            $this->addFlash('success', sprintf('Storage File Policy created for %s', StorageFile::$types[$storagePolicy->getType()]));
+            $this->addFlash('success', sprintf('Storage File Policy created for %s', $availableTypes[$storagePolicy->getType()]));
 
-            return $this->redirectToRoute('admin_list_storage_policies');
+            return $this->redirectToRoute('opensoft_storage_list_storage_policies');
         }
 
         return $this->render('@OpensoftStorage/storage/edit_policy.html.twig', [
-            'types' => StorageFile::$types,
+            'types' =>$availableTypes,
             'policy' => $storagePolicy,
             'form' => $form->createView()
         ]);
     }
 
     /**
-     * @Route("/admin/storage/policies/{id}/delete", name="admin_delete_storage_policy", requirements={"id" = "\d+"})
-     * @Security("hasRole('ROLE_ADMIN_STORAGE_MANAGER')")
+     * @Route("/admin/storage/policies/{id}/delete", name="opensoft_storage_delete_storage_policy", requirements={"id" = "\d+"})
+     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param StoragePolicy $storagePolicy
      * @return RedirectResponse
@@ -303,11 +310,11 @@ class StorageController extends Controller
 
         $this->addFlash('success', 'Storage policy deleted.');
 
-        return $this->redirectToRoute('admin_list_storage_policies');
+        return $this->redirectToRoute('opensoft_storage_list_storage_policies');
     }
 
     /**
-     * @Route("/admin/storage-file/{id}", name="admin_show_storage_file", requirements={"id" = "\d+"})
+     * @Route("/admin/storage-file/{id}", name="opensoft_storage_show_storage_file", requirements={"id" = "\d+"})
      *
      * @param StorageFile $file
      * @return Response
@@ -316,13 +323,14 @@ class StorageController extends Controller
     {
         return $this->render("@OpensoftStorage/storage/show_file.html.twig", [
             'file' => $file,
+            'fileTypes' => $this->get('opensoft_storage.storage_type_provider')->getTypes(),
             'policy' => $this->getDoctrine()->getRepository(StoragePolicy::class)->findOneByType($file->getType())
         ]);
     }
 
     /**
-     * @Route("/admin/storage-file/{id}/delete", name="admin_delete_storage_file", requirements={"id" = "\d+"})
-     * @Security("hasRole('ROLE_ADMIN_STORAGE_MANAGER')")
+     * @Route("/admin/storage-file/{id}/delete", name="opensoft_storage_delete_storage_file", requirements={"id" = "\d+"})
+     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param StorageFile $file
      * @return Response
@@ -338,12 +346,12 @@ class StorageController extends Controller
         } catch (\Exception $e) {
             $this->addFlash('danger', $e->getMessage());
 
-            return $this->redirectToRoute('admin_show_storage_file', ['id' => $fileId]);
+            return $this->redirectToRoute('opensoft_storage_show_storage_file', ['id' => $fileId]);
         }
 
         $this->addFlash('success', sprintf("Storage file '%d' successfully deleted", $fileId));
 
-        return $this->redirectToRoute('admin_show_storage', ['id' => $file->getStorage()->getId()]);
+        return $this->redirectToRoute('opensoft_storage_show_storage', ['id' => $file->getStorage()->getId()]);
     }
 
     /**
@@ -391,7 +399,7 @@ class StorageController extends Controller
                 ]);
             }
 
-            return $this->redirectToRoute('admin_list_storages');
+            return $this->redirectToRoute('opensoft_storage_list_storages');
         }
 
         return $this->render("@OpensoftStorage/storage/edit.html.twig", [

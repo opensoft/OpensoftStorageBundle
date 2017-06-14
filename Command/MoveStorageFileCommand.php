@@ -42,11 +42,12 @@ class MoveStorageFileCommand extends ContainerAwareCommand
         $storageFileId = $input->getArgument('storageFileId');
         $destinationStorageId = $input->getArgument('destinationStorageId');
 
-        $storageFileRepository = $this->getContainer()->get('opensoft_onp_core.repository.storage_file_repository');
-        $storageRepository = $this->getContainer()->get('opensoft_onp_core.repository.storage_repository');
+        $doctrine = $this->getContainer()->get('doctrine');
+        $storageFileRepository = $doctrine->getRepository(StorageFile::class);
+        $storageRepository = $doctrine->getRepository(Storage::class);
+        $storageFileTypes = $this->getContainer()->get('opensoft_storage.storage_type_provider')->getTypes();
         $logger = $this->getContainer()->get('logger');
         $storageManager = $this->getContainer()->get('storage_manager');
-        $em = $this->getContainer()->get('doctrine')->getManager();
 
         /** @var StorageFile $storageFile */
         $storageFile = $storageFileRepository->find($storageFileId);
@@ -69,16 +70,18 @@ class MoveStorageFileCommand extends ContainerAwareCommand
             return -1;
         }
 
+        $em = $doctrine->getManager();
         $em->getConnection()->beginTransaction();
 
         try {
             $output->writeln(sprintf(
                 "Moving file '%d' of type '%s' to storage '%s'...",
                 $storageFile->getId(),
-                $storageFile->getTypeCode(),
+                $storageFileTypes[$storageFile->getType()],
                 $destinationStorage->getName()
             ));
 
+            // TODO - Locking mechanism is exclusive to postgres...
             $haveLock = $em->getConnection()->fetchColumn(
                 "SELECT pg_try_advisory_xact_lock((SELECT 'storage_file'::regclass::oid)::int, ?)",
                 [$storageFileId]

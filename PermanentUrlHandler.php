@@ -114,16 +114,5 @@ class PermanentUrlHandler implements HttpKernelInterface
      */
     private function addHeadersByType($type, Response $response)
     {
-        switch ($type) {
-            case StorageFile::TYPE_DVS_UPLOAD_IMAGE:
-                $response->headers->set('Access-Control-Allow-Origin', '*');
-                break;
-            case StorageFile::TYPE_BANNER_IMAGE:
-            case StorageFile::TYPE_MAIN_PAGE_BLOCK_TABLET_IMAGE:
-                // Set a 1 year expires public cache on these items
-                $response->headers->set('Cache-Control', 'max-age=31536000, public');
-                $response->headers->set('Expires', (new \DateTime('1 year'))->format("D, d M Y H:i:s T"));
-                break;
-        }
     }
 }

@@ -15,10 +15,10 @@
             Storage
         </li>
         <li>
-            <a href="{{ path('admin_list_storages') }}">File Storage</a>
+            <a href="{{ path('opensoft_storage_list_storages') }}">File Storage</a>
         </li>
         <li>
-            <a href="{{ path('admin_list_storage_policies') }}">Polices</a>
+            <a href="{{ path('opensoft_storage_list_storage_policies') }}">Polices</a>
         </li>
         <li class="active">
             <strong>Edit Policy</strong>
@@ -39,7 +39,7 @@
                     </div>
                 </div>
                 <div class="ibox-content">
-                    {% include "@OpensoftStorage/storage/policy_form.html.twig" with {'form': form, 'action': path('admin_edit_storage_policy', {'id': policy.id})} %}
+                    {% include "@OpensoftStorage/storage/policy_form.html.twig" with {'form': form, 'action': path('opensoft_storage_edit_storage_policy', {'id': policy.id})} %}
                 </div>
             </div>
         </div>

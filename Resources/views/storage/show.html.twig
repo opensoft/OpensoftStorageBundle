@@ -16,7 +16,7 @@
             Storage
         </li>
         <li>
-            <a href="{{ path('admin_list_storages') }}">File Storage</a>
+            <a href="{{ path('opensoft_storage_list_storages') }}">File Storage</a>
         </li>
         <li class="active">
             <strong>{{ storage.name }}</strong>
@@ -27,7 +27,7 @@
 {% block breadcrumb_actions %}
 {% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
     <div class="title-action">
-        <a class="btn btn-primary btn-sm" href="{{ path('admin_edit_storage', {'id': storage.id}) }}">
+        <a class="btn btn-primary btn-sm" href="{{ path('opensoft_storage_edit_storage', {'id': storage.id}) }}">
             <i class="fa fa-pencil"></i> Edit
         </a>
     </div>
@@ -165,7 +165,7 @@
                     </div>
                 </div>
                 <div class="ibox-content">
-                    <form class="form-inline" id="filter-form" method="get" action="{{ path('admin_show_storage', {id: storage.id}) }}">
+                    <form class="form-inline" id="filter-form" method="get" action="{{ path('opensoft_storage_show_storage', {id: storage.id}) }}">
                         <div class="form-group">
                             <label>File type</label>
                             <div>{{ form_widget(form.type) }}</div>
@@ -219,7 +219,7 @@
                         {% for file in files %}
                             <tr>
                                 <td>{{ file.id }}</td>
-                                <td>{{ file.typeCode }}</td>
+                                <td>{{ fileTypes[file.type] }}</td>
                                 <td>
                                     <a href="{{ storage_url(file) }}">
                                         {{ file.key }}
@@ -233,7 +233,7 @@
                                 </td>
                                 <td>{{ file.contentHash }}</td>
                                 <td>
-                                    <a class="btn btn-white btn-xs" href="{{ path('admin_show_storage_file', {'id': file.id}) }}">
+                                    <a class="btn btn-white btn-xs" href="{{ path('opensoft_storage_show_storage_file', {'id': file.id}) }}">
                                         <span class="fa fa-search"></span>
                                         View
                                     </a>

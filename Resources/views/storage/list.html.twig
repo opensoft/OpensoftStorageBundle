@@ -25,7 +25,7 @@
 {% block breadcrumb_actions %}
 {% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
     <div class="title-action">
-        <a class="btn btn-primary btn-sm" href="{{ path('admin_create_storage') }}">
+        <a class="btn btn-primary btn-sm" href="{{ path('opensoft_storage_create_storage') }}">
             <i class="fa fa-plus"></i> Add Storage
         </a>
     </div>
@@ -45,7 +45,7 @@
                     </div>
                 </div>
                 <div class="ibox-content">
-                    <form class="form-inline" action="{{ path('admin_search_storage') }}">
+                    <form class="form-inline" action="{{ path('opensoft_storage_search_storage') }}">
                         <div class="form-group">
                             <label class="sr-only" for="search">Search storage files</label>
                             <div class="input-group">
@@ -61,7 +61,7 @@
                 <div class="ibox-title">
                     <h5>Storages</h5>
                     <div class="pull-right">
-                        <a href="{{ path('admin_list_storage_policies') }}" class="btn btn-xs btn-white">
+                        <a href="{{ path('opensoft_storage_list_storage_policies') }}" class="btn btn-xs btn-white">
                             Storage File Policies
                         </a>
                     </div>
@@ -87,7 +87,7 @@
                         {% for storage in storages %}
                             <tr>
                                 <td>
-                                    <a href="{{ path('admin_show_storage', {'id': storage.id}) }}" title="{{ storage.slug }}">
+                                    <a href="{{ path('opensoft_storage_show_storage', {'id': storage.id}) }}" title="{{ storage.slug }}">
                                         {{ storage.name }}
                                     </a>
                                     <br />
@@ -128,11 +128,11 @@
                                     {% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
                                     &nbsp;&nbsp;&nbsp;
                                     {% if not storage.active %}
-                                        <a href="{{ path('admin_activate_storage', {'id': storage.id}) }}">
+                                        <a href="{{ path('opensoft_storage_activate_storage', {'id': storage.id}) }}">
                                             Activate
                                         </a>
                                     {% else %}
-                                        <a href="{{ path('admin_deactivate_storage', {'id': storage.id}) }}">
+                                        <a href="{{ path('opensoft_storage_deactivate_storage', {'id': storage.id}) }}">
                                             Disable
                                         </a>
                                     {% endif %}
@@ -143,10 +143,10 @@
                                 </td>
                                 {% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
                                 <td class="text-right">
-                                    <a class="btn btn-white btn-xs" href="{{ path('admin_edit_storage', {'id': storage.id}) }}">
+                                    <a class="btn btn-white btn-xs" href="{{ path('opensoft_storage_edit_storage', {'id': storage.id}) }}">
                                         Edit
                                     </a>
-                                    <a class="btn btn-white btn-xs" href="{{ path('admin_delete_storage', {'id': storage.id}) }}">
+                                    <a class="btn btn-white btn-xs" href="{{ path('opensoft_storage_delete_storage', {'id': storage.id}) }}">
                                         Delete
                                     </a>
                                 </td>

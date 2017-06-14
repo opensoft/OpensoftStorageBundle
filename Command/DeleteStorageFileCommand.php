@@ -36,7 +36,9 @@ class DeleteStorageFileCommand extends ContainerAwareCommand
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $storageFileId = $input->getArgument('storageFileId');
-        $storageFile = $this->getStorageFileRepository()->find($storageFileId);
+        $doctrine = $this->getContainer()->get('doctrine');
+
+        $storageFile = $doctrine->getRepository(StorageFile::class)->find($storageFileId);
 
         if (!$storageFile) {
             $output->writeln(sprintf("<error>Can not find file with storage id '%d' to delete it</error>", $storageFileId));
@@ -44,18 +46,10 @@ class DeleteStorageFileCommand extends ContainerAwareCommand
             return -1;
         }
 
-        $em = $this->getContainer()->get('doctrine')->getManager();
+        $em = $doctrine->getManager();
         $em->remove($storageFile);
         $em->flush();
 
         $output->writeln(sprintf("<info>Storage file '%d' deleted</info>", $storageFileId));
-    }
-
-    /**
-     * @return StorageFileRepository
-     */
-    private function getStorageFileRepository()
-    {
-        return $this->getContainer()->get('opensoft_onp_core.repository.storage_file_repository');
     }
 }

@@ -17,7 +17,7 @@
             Storage
         </li>
         <li>
-            <a href="{{ path('admin_list_storages') }}">File Storage</a>
+            <a href="{{ path('opensoft_storage_list_storages') }}">File Storage</a>
         </li>
         <li class="active">
             <strong>Polices</strong>
@@ -102,15 +102,15 @@
                                 {% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
                                 <td class="text-right">
                                     {% if policy %}
-                                        <a class="btn btn-white btn-xs" href="{{ path('admin_edit_storage_policy', {'id': policy.id}) }}">
+                                        <a class="btn btn-white btn-xs" href="{{ path('opensoft_storage_edit_storage_policy', {'id': policy.id}) }}">
                                             Edit
                                         </a>
-                                        <a class="btn btn-white btn-xs" href="{{ path('admin_delete_storage_policy', {'id': policy.id}) }}"
+                                        <a class="btn btn-white btn-xs" href="{{ path('opensoft_storage_delete_storage_policy', {'id': policy.id}) }}"
                                             onclick="return confirm('Are you sure you want to delete this file storage policy?  The default storage policy will then apply for this type.');">
                                             Delete
                                         </a>
                                     {% else %}
-                                        <a class="btn btn-white btn-xs" href="{{ path('admin_create_storage_policy', {'type': type}) }}">
+                                        <a class="btn btn-white btn-xs" href="{{ path('opensoft_storage_create_storage_policy', {'type': type}) }}">
                                             Create
                                         </a>
                                     {% endif %}

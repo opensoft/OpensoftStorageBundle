@@ -26,7 +26,12 @@ class OpensoftStorageExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container)
     {
+        $configuration = new Configuration();
+        $config = $this->processConfiguration($configuration, $configs);
+
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
+
+        $container->setAlias('opensoft_storage.storage_type_provider', $config['storage_type_provider_service']);
     }
 }

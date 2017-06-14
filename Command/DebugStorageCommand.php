@@ -36,17 +36,22 @@ class DebugStorageCommand extends ContainerAwareCommand
      */
     public function execute(InputInterface $input, OutputInterface $output)
     {
+        $doctrine = $this->getContainer()->get('doctrine');
+        $storageRepository = $doctrine->getRepository(Storage::class);
+        $storageFileRepository = $doctrine->getRepository(StorageFile::class);
         /** @var Storage[] $storages */
-        $storages = $this->getStorageRepository()->findAll();
+        $storages = $storageRepository->findAll();
 
-        $output->writeln(sprintf("Showing <comment>%d</comment> known file types:", count(StorageFile::$types)));
-        foreach (StorageFile::$types as $key => $type) {
+        $storageFileTypeProvider = $this->getContainer()->get('opensoft_storage.storage_type_provider');
+        $storageFileTypes = $storageFileTypeProvider->getTypes();
+        $output->writeln(sprintf("Showing <comment>%d</comment> known file types:", count($storageFileTypes)));
+        foreach ($storageFileTypes as $key => $type) {
             $output->writeln(sprintf("  <comment>[%d]</comment> %s", $key, $type));
         }
 
         $output->writeln(sprintf("\nShowing <comment>%d</comment> configured storage locations:", count($storages)));
         foreach ($storages as $storage) {
-            $stats = $this->getStorageFileRepository()->statsByStorage($storage);
+            $stats = $storageFileRepository->statsByStorage($storage);
 
             $output->writeln(sprintf("  <comment>[%d]</comment> %s", $storage->getId(), $storage->getName()));
             $output->writeln(sprintf("     internal identifier - %s", $storage->getSlug()));
@@ -60,21 +65,5 @@ class DebugStorageCommand extends ContainerAwareCommand
                 $output->writeln(sprintf("       %s = %s", $key, $value));
             }
         }
-    }
-
-    /**
-     * @return StorageRepository
-     */
-    private function getStorageRepository()
-    {
-        return $this->getContainer()->get('opensoft_onp_core.repository.storage_repository');
-    }
-
-    /**
-     * @return StorageFileRepository
-     */
-    private function getStorageFileRepository()
-    {
-        return $this->getContainer()->get('opensoft_onp_core.repository.storage_file_repository');
     }
 }

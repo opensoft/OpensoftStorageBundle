@@ -104,7 +104,7 @@ class StoragePolicy
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getType()
     {
@@ -112,14 +112,10 @@ class StoragePolicy
     }
 
     /**
-     * @param integer $type
+     * @param int $type
      */
     public function setType($type)
     {
-        if (!isset(StorageFile::$types[$type])) {
-            throw new \InvalidArgumentException(sprintf("Unknown type '%s' for storage policy", $type));
-        }
-
         $this->type = $type;
     }
 

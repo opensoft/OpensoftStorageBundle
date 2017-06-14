@@ -14,6 +14,7 @@ use Doctrine\ORM\QueryBuilder;
 use Lexik\Bundle\FormFilterBundle\Filter\Form\Type\TextFilterType;
 use Opensoft\StorageBundle\Entity\StorageFile;
 use Lexik\Bundle\FormFilterBundle\Filter\Query\QueryInterface;
+use Opensoft\StorageBundle\Storage\StorageFileTypeProviderInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -24,6 +25,19 @@ use Symfony\Component\Form\FormBuilderInterface;
 class StoredFilesFilterType extends AbstractType
 {
     /**
+     * @var StorageFileTypeProviderInterface
+     */
+    private $storageFileTypeProvider;
+
+    /**
+     * @param StorageFileTypeProviderInterface $storageFileTypeProvider
+     */
+    public function __construct(StorageFileTypeProviderInterface $storageFileTypeProvider)
+    {
+        $this->storageFileTypeProvider = $storageFileTypeProvider;
+    }
+
+    /**
      * @param FormBuilderInterface $builder
      * @param array $options
      */
@@ -32,7 +46,7 @@ class StoredFilesFilterType extends AbstractType
         $builder->add('type', ChoiceType::class, [
             'placeholder' => 'All types',
             'required' => false,
-            'choices' => array_flip(StorageFile::$types),
+            'choices' => array_flip($this->storageFileTypeProvider->getTypes()),
         ]);
 
         $builder->add('size', TextFilterType::class, [
