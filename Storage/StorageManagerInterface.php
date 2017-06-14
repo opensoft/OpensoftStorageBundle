@@ -78,6 +78,16 @@ interface StorageManagerInterface
     public function copyStorageFileToScratch(StorageFile $file);
 
     /**
+     * Copy a stored file into any location on the server and return the file location to the caller.
+     *
+     * @param StorageFile $file
+     * @param string $destinationPath
+     * @throws \RuntimeException If the copy fails
+     * @return string
+     */
+    public function copyStorageFileToLocalPath(StorageFile $file, $destinationPath);
+
+    /**
      * Retrieve a URL to this resource
      *
      * @param StorageFile $file
@@ -91,4 +101,14 @@ interface StorageManagerInterface
      * @return resource
      */
     public function retrieveContext(StorageFile $file);
+
+    /**
+     * Returns responses for download links for any StorageFile (remote and local)
+     *
+     * @param StorageFile $storageFile
+     * @param array $additionalHeaders Additional headers to add to the response
+     * @param bool $isInlineDisposition
+     * @return StreamedResponse|BinaryFileResponse
+     */
+    public function returnStorageFileDownloadResponse(StorageFile $storageFile, array $additionalHeaders = [], $isInlineDisposition = false);
 }

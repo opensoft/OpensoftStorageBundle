@@ -19,6 +19,9 @@ use Opensoft\StorageBundle\Entity\StorageFile;
 use Opensoft\StorageBundle\Entity\StoragePolicy;
 use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesser;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * A service for dealing with storages.
@@ -372,6 +375,47 @@ class StorageManager implements StorageManagerInterface
         }
 
         return $cachedFilesystems[$storage->getId()];
+    }
+
+
+    /**
+     * Returns responses for download links for any StorageFile (remote and local)
+     *
+     * @param StorageFile $storageFile
+     * @param array $additionalHeaders Additional headers to add to the response
+     * @param bool $isInlineDisposition
+     * @return StreamedResponse|BinaryFileResponse
+     */
+    public function returnStorageFileDownloadResponse(StorageFile $storageFile, array $additionalHeaders = [], $isInlineDisposition = false)
+    {
+        if ($storageFile->isLocal()) {
+            return new BinaryFileResponse($storageFile->getLocalPath(), 200, [], true, $isInlineDisposition ? ResponseHeaderBag::DISPOSITION_INLINE : ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+        }
+
+        // stream the response through readfile to deal with remote storage
+        $fileUrl = $this->get('storage_manager')->retrieveUrl($storageFile);
+
+        // just in case we need a stream context (ie. when using CNAME's with s3)
+        $context = $this->get('storage_manager')->retrieveContext($storageFile);
+
+        $response = new StreamedResponse(function () use ($fileUrl, $context) {
+            readfile($fileUrl, false, $context);
+        });
+
+        $key = $storageFile->getKey();
+        $fn = strpos($key, '/') !== false ? substr($key, strrpos($key, '/')+1) : $key;
+        $contentDisposition = $isInlineDisposition ? ResponseHeaderBag::DISPOSITION_INLINE : ResponseHeaderBag::DISPOSITION_ATTACHMENT;
+        $d = $response->headers->makeDisposition($contentDisposition, $fn);
+        $response->headers->set('Content-Disposition', $d);
+        $response->headers->set('Content-Length', $storageFile->getSize());
+        $response->headers->set('Content-Transfer-Encoding', 'binary');
+        $response->headers->set('Content-Type', $storageFile->getMimeType());
+
+        foreach ($additionalHeaders as $key => $value) {
+            $response->headers->set($key, $value);
+        }
+
+        return $response;
     }
 
     /**

@@ -80,3 +80,18 @@ services:
             - '%permanent.base_url%'
         tags:
             - { name: 'onp.storage_adapter' }
+
+    opensoft_storage.request_matcher.http_host_request_matcher:
+        class: Opensoft\StorageBundle\Storage\RequestMatcher\HttpHostRequestMatcher
+        public: false
+        arguments:
+            - 'onpimages.dev'
+
+    opensoft_storage.early_request_listener:
+        class: Opensoft\StorageBundle\EventListener\RequestListener
+        arguments:
+            - '@doctrine'
+            - '@opensoft_storage.storage_type_provider'
+            - '@opensoft_storage.request_matcher.http_host_request_matcher'
+        tags:
+            - { name: 'kernel.event_subscriber', lazy: true }

@@ -193,7 +193,7 @@ class LocalAdapterConfiguration extends AbstractAdapterConfiguration implements 
     public static function createPermanentUrlResponse(Request $request, $scheme, $storageKey, $adapter, $storageInfo)
     {
 
-        $fileName = sprintf(__DIR__ . '/../%s/%s', $adapter['directory'], $storageKey);
+        $fileName = sprintf(__DIR__ . '/../../../../../web/%s/%s', $adapter['directory'], $storageKey);
 
         if ($storageInfo['size_in_bytes'] > 1000000) {
             $response = new RedirectResponse(sprintf(
@@ -203,7 +203,6 @@ class LocalAdapterConfiguration extends AbstractAdapterConfiguration implements 
                 rtrim($adapter['directory'], '/'),
                 $storageKey
             ));
-//            $this->addHeadersByType($storageInfo['type'], $response);
 
             return $response;
         } elseif (!file_exists($fileName)) {
