@@ -1,21 +1,15 @@
-{% extends 'admin/layout.html.twig' %}
+{% extends '@OpensoftStorage/layout.html.twig' %}
 
 {% from 'admin/macros.html.twig' import label, time %}
 
-{% block title %}Storage File Type Policies{% endblock %}
+{% block opensoft_storage_title %}Storage File Type Policies{% endblock %}
 
-{% block breadcrumb %}
+{% block opensoft_storage_breadcrumb %}
     <h2>Storage Policies</h2>
     <ol class="breadcrumb">
-        <li>
-            <a href="{{ path('admin_homepage') }}">Admin</a>
-        </li>
-        <li>
-            Configuration
-        </li>
-        <li>
-            Storage
-        </li>
+        {% if block('opensoft_storage_breadcrumb_prefix') is defined %}
+            {{ block('opensoft_storage_breadcrumb_prefix') }}
+        {% endif %}
         <li>
             <a href="{{ path('opensoft_storage_list_storages') }}">File Storage</a>
         </li>
@@ -23,9 +17,9 @@
             <strong>Polices</strong>
         </li>
     </ol>
-{% endblock breadcrumb %}
+{% endblock %}
 
-{% block content %}
+{% block opensoft_storage_content %}
     <div class="row">
         <div class="col-lg-12">
             <div class="ibox">
@@ -102,15 +96,15 @@
                                 {% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
                                 <td class="text-right">
                                     {% if policy %}
-                                        <a class="btn btn-white btn-xs" href="{{ path('opensoft_storage_edit_storage_policy', {'id': policy.id}) }}">
+                                        <a class="btn btn-default btn-xs" href="{{ path('opensoft_storage_edit_storage_policy', {'id': policy.id}) }}">
                                             Edit
                                         </a>
-                                        <a class="btn btn-white btn-xs" href="{{ path('opensoft_storage_delete_storage_policy', {'id': policy.id}) }}"
+                                        <a class="btn btn-default btn-xs" href="{{ path('opensoft_storage_delete_storage_policy', {'id': policy.id}) }}"
                                             onclick="return confirm('Are you sure you want to delete this file storage policy?  The default storage policy will then apply for this type.');">
                                             Delete
                                         </a>
                                     {% else %}
-                                        <a class="btn btn-white btn-xs" href="{{ path('opensoft_storage_create_storage_policy', {'type': type}) }}">
+                                        <a class="btn btn-default btn-xs" href="{{ path('opensoft_storage_create_storage_policy', {'type': type}) }}">
                                             Create
                                         </a>
                                     {% endif %}

@@ -1,28 +1,22 @@
-{% extends 'admin/layout.html.twig' %}
+{% extends '@OpensoftStorage/layout.html.twig' %}
 
 {% from 'admin/macros.html.twig' import label, time %}
 
-{% block title %}Storage{% endblock %}
+{% block opensoft_storage_title %}Storage{% endblock %}
 
-{% block breadcrumb %}
+{% block opensoft_storage_breadcrumb %}
     <h2>Storage Location Configuration</h2>
     <ol class="breadcrumb">
-        <li>
-            <a href="{{ path('admin_homepage') }}">Admin</a>
-        </li>
-        <li>
-            Configuration
-        </li>
-        <li>
-            Storage
-        </li>
+        {% if block('opensoft_storage_breadcrumb_prefix') is defined %}
+            {{ block('opensoft_storage_breadcrumb_prefix') }}
+        {% endif %}
         <li class="active">
             <strong>File Storage</strong>
         </li>
     </ol>
-{% endblock breadcrumb %}
+{% endblock %}
 
-{% block breadcrumb_actions %}
+{% block opensoft_storage_breadcrumb_actions %}
 {% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
     <div class="title-action">
         <a class="btn btn-primary btn-sm" href="{{ path('opensoft_storage_create_storage') }}">
@@ -32,7 +26,7 @@
 {% endif %}
 {% endblock %}
 
-{% block content %}
+{% block opensoft_storage_content %}
     <div class="row">
         <div class="col-lg-12">
             <div class="ibox">
@@ -61,7 +55,7 @@
                 <div class="ibox-title">
                     <h5>Storages</h5>
                     <div class="pull-right">
-                        <a href="{{ path('opensoft_storage_list_storage_policies') }}" class="btn btn-xs btn-white">
+                        <a href="{{ path('opensoft_storage_list_storage_policies') }}" class="btn btn-xs btn-default">
                             Storage File Policies
                         </a>
                     </div>
@@ -143,10 +137,10 @@
                                 </td>
                                 {% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
                                 <td class="text-right">
-                                    <a class="btn btn-white btn-xs" href="{{ path('opensoft_storage_edit_storage', {'id': storage.id}) }}">
+                                    <a class="btn btn-default btn-xs" href="{{ path('opensoft_storage_edit_storage', {'id': storage.id}) }}">
                                         Edit
                                     </a>
-                                    <a class="btn btn-white btn-xs" href="{{ path('opensoft_storage_delete_storage', {'id': storage.id}) }}">
+                                    <a class="btn btn-default btn-xs" href="{{ path('opensoft_storage_delete_storage', {'id': storage.id}) }}">
                                         Delete
                                     </a>
                                 </td>

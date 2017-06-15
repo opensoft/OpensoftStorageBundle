@@ -1,20 +1,15 @@
-{% extends 'admin/layout.html.twig' %}
+{% extends '@OpensoftStorage/layout.html.twig' %}
+
 {% from 'admin/macros.html.twig' import label, badge, time %}
 
-{% block title %}View Storage {{ storage.name }}{% endblock %}
+{% block opensoft_storage_title %}View Storage {{ storage.name }}{% endblock %}
 
-{% block breadcrumb %}
+{% block opensoft_storage_breadcrumb %}
     <h2>{{ storage.name }}</h2>
     <ol class="breadcrumb">
-        <li>
-            <a href="{{ path('admin_homepage') }}">Admin</a>
-        </li>
-        <li>
-            Configuration
-        </li>
-        <li>
-            Storage
-        </li>
+        {% if block('opensoft_storage_breadcrumb_prefix') is defined %}
+            {{ block('opensoft_storage_breadcrumb_prefix') }}
+        {% endif %}
         <li>
             <a href="{{ path('opensoft_storage_list_storages') }}">File Storage</a>
         </li>
@@ -22,9 +17,9 @@
             <strong>{{ storage.name }}</strong>
         </li>
     </ol>
-{% endblock breadcrumb %}
+{% endblock %}
 
-{% block breadcrumb_actions %}
+{% block opensoft_storage_breadcrumb_actions %}
 {% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
     <div class="title-action">
         <a class="btn btn-primary btn-sm" href="{{ path('opensoft_storage_edit_storage', {'id': storage.id}) }}">
@@ -34,7 +29,7 @@
 {% endif %}
 {% endblock %}
 
-{% block content %}
+{% block opensoft_storage_content %}
     <div class="row">
         <div class="col-lg-6">
             <div class="ibox">
@@ -233,7 +228,7 @@
                                 </td>
                                 <td>{{ file.contentHash }}</td>
                                 <td>
-                                    <a class="btn btn-white btn-xs" href="{{ path('opensoft_storage_show_storage_file', {'id': file.id}) }}">
+                                    <a class="btn btn-default btn-xs" href="{{ path('opensoft_storage_show_storage_file', {'id': file.id}) }}">
                                         <span class="fa fa-search"></span>
                                         View
                                     </a>
@@ -253,7 +248,7 @@
 
 {% endblock %}
 
-{% block foot_script %}
+{% block opensoft_storage_foot_script %}
     {{ parent() }}
     <script>
         $(function () {

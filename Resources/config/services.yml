@@ -16,6 +16,7 @@ services:
             - '@opensoft_onp_core.storage.gaufrette_adapter_resolver'
             - '@storage.url_resolver'
             - '@storage.key_generator'
+            - '@opensoft_storage.storage_type_provider'
 
     opensoft_onp_core.storage.gaufrette_adapter_resolver:
         class: Opensoft\StorageBundle\Storage\GaufretteAdapterResolver

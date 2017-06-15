@@ -1,19 +1,13 @@
-{% extends 'admin/layout.html.twig' %}
+{% extends '@OpensoftStorage/layout.html.twig' %}
 
-{% block title %}Edit Storage{% endblock %}
+{% block opensoft_storage_title %}Edit Storage{% endblock %}
 
-{% block breadcrumb %}
+{% block opensoft_storage_breadcrumb %}
     <h2>{% if storage.id %}Edit{% else %}Create{% endif %} Storage Location</h2>
     <ol class="breadcrumb">
-        <li>
-            <a href="{{ path('admin_homepage') }}">Admin</a>
-        </li>
-        <li>
-            Configuration
-        </li>
-        <li>
-            Storage
-        </li>
+        {% if block('opensoft_storage_breadcrumb_prefix') is defined %}
+            {{ block('opensoft_storage_breadcrumb_prefix') }}
+        {% endif %}
         <li>
             <a href="{{ path('opensoft_storage_list_storages') }}">File Storage</a>
         </li>
@@ -21,9 +15,9 @@
             <strong>{% if storage.id %}Edit{% else %}Create{% endif %} Storage Location</strong>
         </li>
     </ol>
-{% endblock breadcrumb %}
+{% endblock %}
 
-{% block content %}
+{% block opensoft_storage_content %}
     <div class="row">
         <div class="col-lg-12">
             <div class="ibox">
@@ -52,7 +46,7 @@
                                 <span class="fa fa-save"></span>
                                 Submit
                             </button>
-                            <a class="btn btn-white" onclick="history.go(-1); return true;">
+                            <a class="btn btn-default" onclick="history.go(-1); return true;">
                                 <span class="fa fa-ban"></span>
                                 Cancel
                             </a>
@@ -66,7 +60,7 @@
     </div>
 {% endblock %}
 
-{% block foot_script %}
+{% block opensoft_storage_foot_script %}
     {{ parent() }}
     <script>
         $('#storage-adapter-form').on('change', '#storage_type_adapterOptions_class', function() {

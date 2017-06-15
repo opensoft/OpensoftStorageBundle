@@ -54,21 +54,29 @@ class StorageManager implements StorageManagerInterface
     private $storageKeyGenerator;
 
     /**
+     * @var StorageFileTypeProviderInterface
+     */
+    private $storageTypeProvider;
+
+    /**
      * @param ManagerRegistry $doctrine
      * @param GaufretteAdapterResolver $gaufretteAdapterResolver
      * @param StorageUrlResolverInterface $storageUrlResolver
      * @param StorageKeyGeneratorInterface $storageKeyGenerator
+     * @param StorageFileTypeProviderInterface $storageTypeProvider
      */
     public function __construct(
         ManagerRegistry $doctrine,
         GaufretteAdapterResolver $gaufretteAdapterResolver,
         StorageUrlResolverInterface $storageUrlResolver,
-        StorageKeyGeneratorInterface $storageKeyGenerator
+        StorageKeyGeneratorInterface $storageKeyGenerator,
+        StorageFileTypeProviderInterface $storageTypeProvider
     ) {
         $this->doctrine = $doctrine;
         $this->gaufretteAdapterResolver = $gaufretteAdapterResolver;
         $this->storageUrlResolver = $storageUrlResolver;
         $this->storageKeyGenerator = $storageKeyGenerator;
+        $this->storageTypeProvider = $storageTypeProvider;
     }
 
     /**
@@ -86,6 +94,8 @@ class StorageManager implements StorageManagerInterface
      */
     public function storeUploadedFile($type, UploadedFile $uploadedFile, $newFilename = null, $unlinkAfterStore = true)
     {
+        $this->validateFileStorageType($type);
+
         $path = $uploadedFile->getRealPath();
 
         $storage = $this->getStorageFromWritePolicy($type);
@@ -162,6 +172,7 @@ class StorageManager implements StorageManagerInterface
         if (!file_exists($path)) {
             throw new \InvalidArgumentException(sprintf("Cannot store file from non-existent path at '%s'", $path));
         }
+        $this->validateFileStorageType($type);
 
         $storage = $this->getStorageFromWritePolicy($type);
 
@@ -421,12 +432,14 @@ class StorageManager implements StorageManagerInterface
     /**
      * Retrieve a storage for writing a file by type
      *
-     * @param integer $type
+     * @param int $type
      * @throws \UnexpectedValueException
      * @return Storage
      */
     private function getStorageFromWritePolicy($type)
     {
+        $this->validateFileStorageType($type);
+
         $storagePolicy = $this->doctrine->getRepository(StoragePolicy::class)->findOneByType($type);
         if ($storagePolicy) {
             $storage = $storagePolicy->getCreateInStorage();
@@ -487,5 +500,17 @@ class StorageManager implements StorageManagerInterface
         $em = $this->doctrine->getManager();
         $em->persist($file);
         $em->flush($file);
+    }
+
+    /**
+     * @param int $type
+     * @throws \InvalidArgumentException
+     */
+    private function validateFileStorageType($type)
+    {
+        $availableTypes = $this->storageTypeProvider->getTypes();
+        if (!isset($availableTypes[$type])) {
+            throw new \InvalidArgumentException(sprintf("StorageFile type out of range.  Allowed values:  '%s'", implode(', ', array_keys($availableTypes))));
+        }
     }
 }

@@ -18,10 +18,10 @@ use Opensoft\StorageBundle\Entity\StorageFile;
 use Opensoft\StorageBundle\Entity\StoragePolicy;
 use Opensoft\StorageBundle\Storage\Adapter\LocalAdapterConfiguration;
 use Opensoft\StorageBundle\Storage\GaufretteAdapterResolver;
+use Opensoft\StorageBundle\Storage\StorageFileTypeProviderInterface;
 use Opensoft\StorageBundle\Storage\StorageKeyGenerator;
 use Opensoft\StorageBundle\Storage\StorageManager;
 use Opensoft\StorageBundle\Storage\StorageUrlResolverInterface;
-use Tests\TestCase;
 use Symfony\Component\Asset\Package;
 use Symfony\Component\Asset\Packages;
 use Symfony\Component\Asset\UrlPackage;
@@ -35,7 +35,7 @@ use Symfony\Component\Routing\RouterInterface;
  *
  * @author Richard Fullmer <richard.fullmer@opensoftdev.com>
  */
-class StorageManagerTest extends TestCase
+class StorageManagerTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var StorageManager
@@ -59,12 +59,19 @@ class StorageManagerTest extends TestCase
         ));
 
         $this->doctrine = $this->createMock(ManagerRegistry::class);
+        $this->typeProvider = $this->createMock(StorageFileTypeProviderInterface::class);
+        $this->typeProvider->method('getTypes')->willReturn([
+            1 => 'type 1',
+            2 => 'type 2',
+            3 => 'type 3'
+        ]);
 
         $this->storageManager = new StorageManager(
             $this->doctrine,
             $adapterResolver,
             $this->createMock(StorageUrlResolverInterface::class),
-            new StorageKeyGenerator()
+            new StorageKeyGenerator(),
+            $this->typeProvider
         );
 
         $this->setUpSaveExpectations();
@@ -93,10 +100,10 @@ class StorageManagerTest extends TestCase
         $tempFileLocation = sys_get_temp_dir() . '/phpunit-test1.txt';
         file_put_contents($tempFileLocation, 'this is the content');
 
-        $storedFile = $this->storageManager->storeFileFromLocalPath(StorageFile::TYPE_HI_RES, $tempFileLocation);
+        $storedFile = $this->storageManager->storeFileFromLocalPath(2, $tempFileLocation);
 
         $this->assertEquals('this is the content', $storedFile->getContent());
-        $this->assertEquals(StorageFile::TYPE_HI_RES, $storedFile->getType());
+        $this->assertEquals(2, $storedFile->getType());
         $this->assertEquals(md5_file($tempFileLocation), $storedFile->getContentHash());
         $this->assertEquals(19, $storedFile->getSize());
         $this->assertTrue($storedFile->isLocal());
@@ -112,10 +119,10 @@ class StorageManagerTest extends TestCase
         file_put_contents($tempFileLocation, 'this is the content');
         $computedHash = md5('this is the content');
 
-        $storedFile = $this->storageManager->storeFileFromLocalPath(StorageFile::TYPE_HI_RES, $tempFileLocation, null, true);
+        $storedFile = $this->storageManager->storeFileFromLocalPath(3, $tempFileLocation, null, true);
 
         $this->assertEquals('this is the content', $storedFile->getContent());
-        $this->assertEquals(StorageFile::TYPE_HI_RES, $storedFile->getType());
+        $this->assertEquals(3, $storedFile->getType());
         $this->assertEquals($computedHash, $storedFile->getContentHash());
         $this->assertEquals(19, $storedFile->getSize());
         $this->assertTrue($storedFile->isLocal());
@@ -144,10 +151,10 @@ class StorageManagerTest extends TestCase
         file_put_contents($tempFileLocation, 'this is the content');
         $uploadFile = new UploadedFile($tempFileLocation, 'phpunit-test3.txt');
 
-        $storedFile = $this->storageManager->storeUploadedFile(StorageFile::TYPE_TAX_EXEMPT, $uploadFile, null, false);
+        $storedFile = $this->storageManager->storeUploadedFile(1, $uploadFile, null, false);
 
         $this->assertEquals('this is the content', $storedFile->getContent());
-        $this->assertEquals(StorageFile::TYPE_TAX_EXEMPT, $storedFile->getType());
+        $this->assertEquals(1, $storedFile->getType());
         $this->assertEquals(19, $storedFile->getSize());
         $this->assertTrue($storedFile->isLocal());
         $this->assertFileExists($tempFileLocation);
@@ -200,5 +207,19 @@ class StorageManagerTest extends TestCase
 
         $em = $this->getMockBuilder(EntityManager::class)->disableOriginalConstructor()->getMock();
         $this->doctrine->expects($this->any())->method('getManager')->willReturn($em);
+    }
+
+    /**
+     * Sets the given property to given value on Object in Test
+     *
+     * @param mixed $object Subject under test
+     * @param string $name   Property name
+     * @param mixed $value  Value
+     */
+    protected function setPropertyOnObject($object, string $name, $value)
+    {
+        $property = new \ReflectionProperty($object, $name);
+        $property->setAccessible(true);
+        $property->setValue($object, $value);
     }
 }

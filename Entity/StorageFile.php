@@ -233,22 +233,10 @@ class StorageFile extends GaufretteFile
     }
 
     /**
-     * @return string
-     */
-    public function getTypeCode()
-    {
-        return isset(self::$types[$this->type]) ? self::$types[$this->type] : '';
-    }
-
-    /**
      * @param integer $type
      */
     public function setType($type)
     {
-        if (!isset(self::$types[$type])) {
-            throw new \InvalidArgumentException(sprintf("StorageFile type out of range.  Allowed values:  '%s'", array_keys(self::$types)));
-        }
-
         $this->type = $type;
     }
 
