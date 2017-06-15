@@ -1,3 +1,8 @@
+Opensoft Storage Bundle
+=======================
+
+[![Build Status](https://travis-ci.com/opensoft/OpensoftStorageBundle.svg?token=otbbpqUUMBuesyKDQkii&branch=master)](https://travis-ci.com/opensoft/OpensoftStorageBundle)
+
 Installation
 ============
 
@@ -8,7 +13,7 @@ Open a command console, enter your project directory and execute the
 following command to download the latest stable version of this bundle:
 
 ```console
-$ composer require <package-name> "~1"
+$ composer require opensoft/storage-bundle "~1"
 ```
 
 This command requires you to have Composer installed globally, as explained
@@ -33,7 +38,7 @@ class AppKernel extends Kernel
         $bundles = array(
             // ...
 
-            new <vendor>\<bundle-name>\<bundle-long-name>(),
+            new Opensoft\StorageBundle\OpensoftStorageBundle(),
         );
 
         // ...
