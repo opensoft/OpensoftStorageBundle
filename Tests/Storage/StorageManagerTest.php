@@ -209,7 +209,7 @@ class StorageManagerTest extends \PHPUnit_Framework_TestCase
      * @param string $name   Property name
      * @param mixed $value  Value
      */
-    protected function setPropertyOnObject($object, string $name, $value)
+    protected function setPropertyOnObject($object, $name, $value)
     {
         $property = new \ReflectionProperty($object, $name);
         $property->setAccessible(true);
