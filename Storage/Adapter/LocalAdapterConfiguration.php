@@ -162,7 +162,7 @@ class LocalAdapterConfiguration extends AbstractAdapterConfiguration implements 
 
         $usage = array();
         //Find disk usage - the 'awk' takes out the extra spaces so split() will work correctly
-        exec("df -Pk ".$path."|awk '{print $2,$3,$1,$4,$5}'", $usage);
+        exec("df -Pk " . $path . "|awk '{print $2,$3,$1,$4,$5}'", $usage);
         $usageline = explode(' ', $usage[1]);
 
         $data = [

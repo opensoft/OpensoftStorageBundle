@@ -210,7 +210,7 @@ class StorageManagerTest extends \PHPUnit_Framework_TestCase
     /**
      * Sets the given property to given value on Object in Test
      *
-     * @param mixed $object Subject under test
+     * @param Storage $object Subject under test
      * @param string $name   Property name
      * @param mixed $value  Value
      */

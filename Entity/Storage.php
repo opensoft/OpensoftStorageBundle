@@ -193,7 +193,7 @@ class Storage
      */
     public function setActive($active)
     {
-        $this->active = (bool) $active;
+        $this->active = (bool)$active;
     }
 
     /**
