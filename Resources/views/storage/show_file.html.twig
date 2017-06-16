@@ -149,7 +149,7 @@
                     <h5>{{ fileTypes[file.type] }}</h5>
                     <div class="ibox-tools">
                         <a class="btn btn-primary btn-xs" href="{{ storage_url(file) }}" download>
-                            <i class="fa fa-download"></i>Download File
+                            <i class="fa fa-fw fa-download"></i>Download File
                         </a>
                     </div>
                 </div>
@@ -161,9 +161,9 @@
     </div>
 {% endblock %}
 
-{% block foot_script %}
+{% block opensoft_storage_foot_script %}
 
     {{ parent() }}
-   <script src="{{ asset('assets/libs/pdfjs-dist/build/pdf.js') }}"></script>
+   <script src="{{ asset('bundles/opensoftstorage/js/pdf.js') }}"></script>
 
 {% endblock %}

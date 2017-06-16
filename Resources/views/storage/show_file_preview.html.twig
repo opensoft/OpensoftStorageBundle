@@ -63,7 +63,7 @@
 
             // places a button in the toolbar, wires up an event to react on click
             function addToolbarButton(label, iconIdentifier, onClickEventHandler) {
-                var buttonTemplate = $('<a class= "btn btn-primary btn-xs"><i class="fa"></i></a>')
+                var buttonTemplate = $('<a class="btn btn-primary btn-xs"><i class="fa"></i></a>')
                         .on("click", onClickEventHandler)
                         .prependTo(fileDTO.layout.toolbar);
 
@@ -96,12 +96,12 @@
             function buildPDFPreview(fileObject, pageNumber) {
                 var api = window.PDFJS;
                 // Setting worker path to worker bundle.
-                window.PDFJS.workerSrc = "{{ asset('assets/libs/pdfjs-dist/build/pdf.worker.js') }}";
+                window.PDFJS.workerSrc = "{{ asset('bundles/opensoftstorage/js/pdf.worker.js') }}";
 
                 // Fetch the PDF document from the URL using promises.
                 api.getDocument(fileObject.storageURL).then(function (pdf) {
 
-                    var $detailsBtn = addToolbarButton("PDF Details", "fa-file-text", onDetailsButtonClickEvent);
+                    var $detailsBtn = addToolbarButton("PDF Details", "fa fa-fw fa-file-text", onDetailsButtonClickEvent);
                     $detailsBtn.append($(fileDTO.layout.metadata));
                     $(fileDTO.layout.metadata).hide();
                     // relocate output for overlay
@@ -163,9 +163,10 @@
                         return renderTask.promise;
                     });
 
-                }).catch(function (reason) {
-                    console.error('Error: ' + reason);
                 });
+//                .catch(function (reason) {
+//                    console.error('Error: ' + reason);
+//                });
             }
 
             // when the toolbar button for "Details" is clicked, show an overlay of PDF metadata

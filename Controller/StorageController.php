@@ -406,7 +406,7 @@ class StorageController extends Controller
      */
     private function getAdapterResolver()
     {
-        return $this->get('opensoft_onp_core.storage.gaufrette_adapter_resolver');
+        return $this->get('opensoft_storage.gaufrette_adapter_resolver');
     }
 
     /**

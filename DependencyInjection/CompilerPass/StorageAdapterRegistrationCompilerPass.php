@@ -18,11 +18,11 @@ class StorageAdapterRegistrationCompilerPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        if (false === $container->hasDefinition('opensoft_onp_core.storage.gaufrette_adapter_resolver')) {
+        if (false === $container->hasDefinition('opensoft_storage.gaufrette_adapter_resolver')) {
             return;
         }
-        $definition = $container->getDefinition('opensoft_onp_core.storage.gaufrette_adapter_resolver');
-        foreach ($container->findTaggedServiceIds('onp.storage_adapter') as $id => $attributes) {
+        $definition = $container->getDefinition('opensoft_storage.gaufrette_adapter_resolver');
+        foreach ($container->findTaggedServiceIds('opensoft_storage.adapter') as $id => $attributes) {
             $definition->addMethodCall('addConfiguration', array(new Reference($id)));
         }
     }

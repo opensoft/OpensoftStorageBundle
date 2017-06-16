@@ -58,7 +58,7 @@ class LocalAdapterConfiguration extends AbstractAdapterConfiguration implements 
             ->add('directory', TextType::class, [
                 'required' => true,
                 'help_block' => 'Directory where the filesystem is located local to the webservers. This should be a relative path of the application\'s <code>web/</code> directory.
-                            <br /><br /> <strong>Note:</strong>  This directory must be present on all ONP web servers.'
+                            <br /><br /> <strong>Note:</strong>  This directory must be present on all web servers.'
             ])
             ->add('create', CheckboxType::class, [
                 'required' => false,
