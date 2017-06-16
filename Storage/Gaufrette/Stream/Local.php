@@ -63,7 +63,7 @@ class Local implements Stream
      */
     public function read($count)
     {
-        if (! $this->fileHandle) {
+        if (!$this->fileHandle) {
             return false;
         }
 
@@ -79,7 +79,7 @@ class Local implements Stream
      */
     public function write($data)
     {
-        if (! $this->fileHandle) {
+        if (!$this->fileHandle) {
             return false;
         }
 
@@ -95,7 +95,7 @@ class Local implements Stream
      */
     public function close()
     {
-        if (! $this->fileHandle) {
+        if (!$this->fileHandle) {
             return false;
         }
 

@@ -392,12 +392,12 @@ class StorageManager implements StorageManagerInterface
         // just in case we need a stream context (ie. when using CNAME's with s3)
         $context = $this->retrieveContext($storageFile);
 
-        $response = new StreamedResponse(function () use ($fileUrl, $context) {
+        $response = new StreamedResponse(function() use ($fileUrl, $context) {
             readfile($fileUrl, false, $context);
         });
 
         $key = $storageFile->getKey();
-        $fn = strpos($key, '/') !== false ? substr($key, strrpos($key, '/')+1) : $key;
+        $fn = strpos($key, '/') !== false ? substr($key, strrpos($key, '/') + 1) : $key;
         $contentDisposition = $isInlineDisposition ? ResponseHeaderBag::DISPOSITION_INLINE : ResponseHeaderBag::DISPOSITION_ATTACHMENT;
         $d = $response->headers->makeDisposition($contentDisposition, $fn);
         $response->headers->set('Content-Disposition', $d);

@@ -134,7 +134,7 @@ class StorageListener implements EventSubscriber
     /**
      * Returns an array of events this subscriber wants to listen to.
      *
-     * @return array
+     * @return string[]
      */
     public function getSubscribedEvents()
     {

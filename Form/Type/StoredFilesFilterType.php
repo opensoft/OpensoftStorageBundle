@@ -42,7 +42,7 @@ class StoredFilesFilterType extends AbstractType
         ]);
 
         $builder->add('size', TextFilterType::class, [
-            'apply_filter' => function (QueryInterface $filterQuery, $field, $values) {
+            'apply_filter' => function(QueryInterface $filterQuery, $field, $values) {
                 if ($values['value']) {
                     $this->addCondition($filterQuery, $field, $values['value']);
                 }

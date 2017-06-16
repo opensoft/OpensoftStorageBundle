@@ -93,7 +93,7 @@ class AwsS3AdapterConfiguration extends AbstractAdapterConfiguration
     protected function doCreateAdapter(array $options)
     {
         $service = new S3Client([
-            'version' => '2006-03-01',  // see http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html
+            'version' => '2006-03-01', // see http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html
             'region' => !empty($options['region']) ? $options['region'] : 'us-east-1',
             'credentials' => [
                 'key' => $options['key'],

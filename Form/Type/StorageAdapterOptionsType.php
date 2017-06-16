@@ -42,7 +42,7 @@ class StorageAdapterOptionsType extends AbstractType
             ])
         ;
 
-        $formModifier = function (FormInterface $form, array $options = null) {
+        $formModifier = function(FormInterface $form, array $options = null) {
 
             // remove all previously set form fields (except the class)
             foreach ($form->all() as $formElement) {
@@ -59,11 +59,11 @@ class StorageAdapterOptionsType extends AbstractType
             $selectedConfiguration->buildForm($form, $options);
         };
 
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($formModifier) {
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function(FormEvent $event) use ($formModifier) {
             $formModifier($event->getForm(), $event->getData());
         });
 
-        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) use ($formModifier) {
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, function(FormEvent $event) use ($formModifier) {
             $formModifier($event->getForm(), $event->getData());
         });
     }
