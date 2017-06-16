@@ -238,15 +238,6 @@ class StorageManager implements StorageManagerInterface
     }
 
     /**
-     * @param StorageFile $file
-     * @return resource
-     */
-    public function retrieveContext(StorageFile $file)
-    {
-        return $this->storageUrlResolver->getContext($file);
-    }
-
-    /**
      * Moves a storage file from it's current storage location to a new one.
      *
      * @param StorageFile $file
@@ -396,10 +387,10 @@ class StorageManager implements StorageManagerInterface
         }
 
         // stream the response through readfile to deal with remote storage
-        $fileUrl = $this->get('storage_manager')->retrieveUrl($storageFile);
+        $fileUrl = $this->retrieveUrl($storageFile);
 
         // just in case we need a stream context (ie. when using CNAME's with s3)
-        $context = $this->get('storage_manager')->retrieveContext($storageFile);
+        $context = $this->retrieveContext($storageFile);
 
         $response = new StreamedResponse(function () use ($fileUrl, $context) {
             readfile($fileUrl, false, $context);
@@ -419,6 +410,15 @@ class StorageManager implements StorageManagerInterface
         }
 
         return $response;
+    }
+
+    /**
+     * @param StorageFile $file
+     * @return resource
+     */
+    private function retrieveContext(StorageFile $file)
+    {
+        return $this->storageUrlResolver->getContext($file);
     }
 
     /**

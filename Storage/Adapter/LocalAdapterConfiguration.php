@@ -205,7 +205,6 @@ class LocalAdapterConfiguration extends AbstractAdapterConfiguration implements 
             $requestedTime = !empty($since) ? strtotime($since) : null;
 
             $response = new BinaryFileResponse($fileName, Response::HTTP_OK, ['Content-Type' => $storageInfo['mime_type']]);
-//            $this->addHeadersByType($storageInfo['type'], $response);
             $response->prepare($request);
 
             if (!empty($requestedTime) && $fileModified <= $requestedTime) {

@@ -100,7 +100,6 @@ class PolicyExecuteCommand extends ContainerAwareCommand
     {
         /** @var EntityManager $em */
         $em = $this->getContainer()->get('doctrine')->getManager();
-        $taskManager = $this->getContainer()->get('task_manager');
 
         $qb = $em->createQueryBuilder()
             ->select('s')
@@ -187,7 +186,7 @@ class PolicyExecuteCommand extends ContainerAwareCommand
 
             $task = new CommandTask();
             $task->command('storage:delete-file');
-            $task->arguments(sprintf('%d', $storageFile['id']));
+            $task->arguments(sprintf('%d', $storageFileId));
             $taskManager->queueTask($task);
 
             return;
@@ -217,7 +216,7 @@ class PolicyExecuteCommand extends ContainerAwareCommand
 
             $task = new CommandTask();
             $task->command('storage:move-file');
-            $task->arguments(sprintf('%d %d', $storageFile['id'], $toStorage->getId()));
+            $task->arguments(sprintf('%d %d', $storageFileId, $toStorage->getId()));
             $task->timeout(300)->idleTimeout(300);
             $taskManager->queueTask($task);
 

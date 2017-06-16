@@ -40,6 +40,11 @@ class StorageManagerTest extends \PHPUnit_Framework_TestCase
      */
     private $doctrine;
 
+    /**
+     * @var \PHPUnit_Framework_MockObject_MockObject|StorageFileTypeProviderInterface
+     */
+    private $typeProvider;
+
     protected function setUp()
     {
         $adapterResolver = new GaufretteAdapterResolver();

@@ -5,7 +5,9 @@ namespace Opensoft\StorageBundle\Storage;
 use Gaufrette\Filesystem;
 use Opensoft\StorageBundle\Entity\Storage;
 use Opensoft\StorageBundle\Entity\StorageFile;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Provides an interface for stored files in the application.
@@ -87,12 +89,6 @@ interface StorageManagerInterface
      * @return string
      */
     public function retrieveUrl(StorageFile $file, $referenceType = StorageUrlResolverInterface::ABSOLUTE_URL);
-
-    /**
-     * @param StorageFile $file
-     * @return resource
-     */
-    public function retrieveContext(StorageFile $file);
 
     /**
      * Returns responses for download links for any StorageFile (remote and local)

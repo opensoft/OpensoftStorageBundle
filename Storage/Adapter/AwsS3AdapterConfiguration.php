@@ -184,9 +184,7 @@ class AwsS3AdapterConfiguration extends AbstractAdapterConfiguration
     public static function createPermanentUrlResponse(Request $request, $scheme, $storageKey, $adapter, $storageInfo)
     {
         $url = sprintf('%s://%s.s3.amazonaws.com/%s', $scheme, $adapter['bucket_name'], $storageKey);
-        $response = new RedirectResponse($url);
-//        $this->addHeadersByType($storageInfo['type'], $response);
 
-        return $response;
+        return new RedirectResponse($url);
     }
 }

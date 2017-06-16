@@ -220,19 +220,19 @@ class StoragePolicy
                     ->addViolation();
             }
 
-            if ($this->moveAfterInterval and $this->moveToStorage == null) {
+            if ($this->moveAfterInterval && $this->moveToStorage == null) {
                 $context->buildViolation('Must specify a move to storage target if you have selected a move interval.')
                     ->atPath('moveToStorage')
                     ->addViolation();
             }
 
-            if ($this->moveAfterInterval and $this->moveFromStorage == null) {
+            if ($this->moveAfterInterval && $this->moveFromStorage == null) {
                 $context->buildViolation('Must specify a move from storage source if you have selected a move interval.')
                     ->atPath('moveFromStorage')
                     ->addViolation();
             }
 
-            if (!$this->moveAfterInterval and ($this->moveFromStorage || $this->moveToStorage)) {
+            if (!$this->moveAfterInterval && ($this->moveFromStorage || $this->moveToStorage)) {
                 $context->buildViolation('Must specify a move interval for storage movement.')
                     ->atPath('moveAfterInterval')
                     ->addViolation();

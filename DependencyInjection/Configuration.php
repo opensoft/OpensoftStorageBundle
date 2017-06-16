@@ -27,7 +27,6 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('storage_type_provider_service')->isRequired()->end()
-//                ->scalarNode('storage_service')->defaultValue('rollout.storage.array_storage')->end()
             ->end()
         ;
 
