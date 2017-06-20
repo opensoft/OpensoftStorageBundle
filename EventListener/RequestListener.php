@@ -3,6 +3,8 @@
 namespace Opensoft\StorageBundle\EventListener;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Opensoft\StorageBundle\Storage\Adapter\AwsS3AdapterConfiguration;
+use Opensoft\StorageBundle\Storage\Adapter\LocalAdapterConfiguration;
 use Opensoft\StorageBundle\Storage\RequestMatcher\RequestMatcherInterface;
 use Opensoft\StorageBundle\Storage\StorageFileTypeProviderInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -79,6 +81,13 @@ class RequestListener implements EventSubscriberInterface
         /** @var AdapterConfigurationInterface|string $adapterClass */
         $adapterClass = $adapter['class'];
 
+        // BC shim to support new namespaces while extracting storage engine code into bundle
+        if ($adapterClass == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\LocalAdapterConfiguration') {
+            $adapterClass = LocalAdapterConfiguration::class;
+        } elseif ($adapterClass == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\AwsS3AdapterConfiguration') {
+            $adapterClass = AwsS3AdapterConfiguration::class;
+        }
+
         if (!class_exists($adapterClass)) {
             return new Response('', Response::HTTP_NOT_FOUND);
         }
@@ -113,6 +122,7 @@ class RequestListener implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
+            // Priority puts this _very_ early in the kernel.request process.  We need this to process quickly.
             KernelEvents::REQUEST => ['onEarlyKernelRequest', 254]
         ];
     }

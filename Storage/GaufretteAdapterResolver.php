@@ -5,6 +5,8 @@ namespace Opensoft\StorageBundle\Storage;
 use Doctrine\Common\Collections\ArrayCollection;
 use Gaufrette\Adapter;
 use Opensoft\StorageBundle\Storage\Adapter\AdapterConfigurationInterface;
+use Opensoft\StorageBundle\Storage\Adapter\AwsS3AdapterConfiguration;
+use Opensoft\StorageBundle\Storage\Adapter\LocalAdapterConfiguration;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 
@@ -28,7 +30,16 @@ class GaufretteAdapterResolver
      */
     public function addConfiguration(AdapterConfigurationInterface $adapterConfiguration)
     {
-        $this->configurations->set(get_class($adapterConfiguration), $adapterConfiguration);
+        $adapterClass = get_class($adapterConfiguration);
+
+        // BC shim to support new namespaces while extracting storage engine code into bundle
+        if ($adapterClass == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\LocalAdapterConfiguration') {
+            $adapterClass = LocalAdapterConfiguration::class;
+        } elseif ($adapterClass == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\AwsS3AdapterConfiguration') {
+            $adapterClass = AwsS3AdapterConfiguration::class;
+        }
+
+        $this->configurations->set($adapterClass, $adapterConfiguration);
     }
 
     /**
