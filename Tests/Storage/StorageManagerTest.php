@@ -178,7 +178,8 @@ class StorageManagerTest extends \PHPUnit_Framework_TestCase
             'class' => LocalAdapterConfiguration::class,
             'directory' => $directory,
             'create' => true,
-            'mode' => '0777'
+            'mode' => '0777',
+            'http_host' => 'onp.dev'
         ]);
         $storage->setName('test');
         $this->setPropertyOnObject($storage, 'slug', uniqid('tmp'));
