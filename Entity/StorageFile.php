@@ -5,7 +5,6 @@ namespace Opensoft\StorageBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Gaufrette\File as GaufretteFile;
 use Gaufrette\Filesystem;
-//use Opensoft\Onp\Bundle\WebBundle\Entity\FileHiresCandidate;
 
 /**
  * StorageFile - an entity representing a stored file in our storage system.
@@ -76,16 +75,6 @@ class StorageFile extends GaufretteFile
      * @ORM\Column(type="string", name="content_hash")
      */
     private $contentHash;
-
-//    /**
-//     * Note: this association only exists to set up the proper cascade removal behavior for FileHiresCandidate objects
-//     *
-//     * @var FileHiresCandidate
-//     * @noinspection PhpUnusedPrivateFieldInspection
-//     *
-//     * @ORM\OneToOne(targetEntity="Opensoft\Onp\Bundle\WebBundle\Entity\FileHiresCandidate", mappedBy="storageFile", cascade={"remove"})
-//     */
-//    private $fileHiresCandidateHiresStorageFile;
 
     /**
      * Constructor
