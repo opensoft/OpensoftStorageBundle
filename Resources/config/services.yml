@@ -33,7 +33,7 @@ services:
         arguments:
             - '@doctrine'
             - '@opensoft_storage.storage_type_provider'
-            - '@opensoft_storage.request_matcher.http_host_request_matcher'
+            - '@opensoft_storage.request_matcher.default_request_matcher'
         tags:
             - { name: 'kernel.event_subscriber', lazy: true }
 
@@ -78,11 +78,12 @@ services:
             - { name: 'doctrine.event_subscriber', lazy: true }
             - { name: 'monolog.logger', channel: 'storage'}
 
+    # Permanent URL Request Matchers (currently only the http_host matcher exists)
     opensoft_storage.request_matcher.http_host_request_matcher:
         class: Opensoft\StorageBundle\Storage\RequestMatcher\HttpHostRequestMatcher
         public: false
         arguments:
-            - 'onpimages.dev'
+            - '%opensoft_storage.parameter.permanent.http_host%'
 
     # Adapters (make sure they're tagged with 'opensoft_storage.adapter')
     opensoft_storage.adapter.aws_s3:
@@ -90,7 +91,7 @@ services:
         public: false
         arguments:
             - '@router'
-            - '%permanent.base_url%'
+            - '%opensoft_storage.parameter.permanent_base_url%'
         tags:
             - { name: 'opensoft_storage.adapter' }
     opensoft_storage.adapter.local:
@@ -99,6 +100,6 @@ services:
         arguments:
             - '@router'
             - '@assets.packages'
-            - '%permanent.base_url%'
+            - '%opensoft_storage.parameter.permanent_base_url%'
         tags:
             - { name: 'opensoft_storage.adapter' }

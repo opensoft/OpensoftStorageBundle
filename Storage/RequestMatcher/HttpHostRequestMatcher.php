@@ -12,14 +12,14 @@ class HttpHostRequestMatcher implements RequestMatcherInterface
     /**
      * @var string
      */
-    private $serverName;
+    private $httpHost;
 
     /**
-     * @param string $serverName
+     * @param string $httpHost
      */
-    public function __construct($serverName)
+    public function __construct($httpHost)
     {
-        $this->serverName = $serverName;
+        $this->httpHost = $httpHost;
     }
 
     /**
@@ -28,7 +28,7 @@ class HttpHostRequestMatcher implements RequestMatcherInterface
      */
     public function matches(Request $request)
     {
-        return $request->getHttpHost() === $this->serverName;
+        return $request->getHttpHost() === $this->httpHost;
     }
 
     /**

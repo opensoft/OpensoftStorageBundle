@@ -27,6 +27,14 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('storage_type_provider_service')->isRequired()->end()
+                ->arrayNode('permanent_url')
+                    ->isRequired()
+                    ->children()
+                        ->scalarNode('strategy')->defaultValue('http_host')->isRequired()->end()
+                        ->scalarNode('http_host')->isRequired()->end()
+                        ->scalarNode('base_url')->isRequired()->end()
+                    ->end()
+                ->end()
             ->end()
         ;
 

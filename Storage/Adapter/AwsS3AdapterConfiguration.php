@@ -139,17 +139,12 @@ class AwsS3AdapterConfiguration extends AbstractAdapterConfiguration
         $hostname = isset($adapterOptions['cname']) ? $adapterOptions['cname'] : sprintf("%s.s3.amazonaws.com", $adapterOptions['bucket_name']);
 
         switch ($referenceType) {
-            case StorageUrlResolverInterface::NETWORK_PATH:
-                $url = sprintf("//%s/%s", $hostname, $file->getKey());
-                break;
             case StorageUrlResolverInterface::PERMANENT_URL:
                 $url = sprintf('%s/%s', $this->permanentBaseUrl, $file->getKey());
                 break;
             case StorageUrlResolverInterface::ABSOLUTE_URL:
                 $url = sprintf("%s://%s/%s", $this->router->getContext()->getScheme(), $hostname, $file->getKey());
                 break;
-            case StorageUrlResolverInterface::ABSOLUTE_PATH:
-                throw new \LogicException("The AwsS3 Adapter does not support the absolute path method of url generation");
             default:
                 throw new \LogicException("Undefined url referenceType");
         }

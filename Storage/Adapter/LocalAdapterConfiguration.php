@@ -60,6 +60,10 @@ class LocalAdapterConfiguration extends AbstractAdapterConfiguration implements 
                 'help_block' => 'Directory where the filesystem is located local to the webservers. This should be a relative path of the application\'s <code>web/</code> directory.
                             <br /><br /> <strong>Note:</strong>  This directory must be present on all web servers.'
             ])
+            ->add('http_host', TextType::class, [
+                'required' => true,
+                'help_block' => 'The local HTTP host which will serve the storage files.'
+            ])
             ->add('create', CheckboxType::class, [
                 'required' => false,
                 'help_block' => 'Whether to create the directory if it does not exist.'
@@ -96,7 +100,8 @@ class LocalAdapterConfiguration extends AbstractAdapterConfiguration implements 
         $resolver = new OptionsResolver();
 
         $resolver->setRequired([
-            'directory'
+            'directory',
+            'http_host'
         ]);
         $resolver->setDefined([
             'create',
@@ -123,17 +128,11 @@ class LocalAdapterConfiguration extends AbstractAdapterConfiguration implements 
         $path = $adapterOptions['directory'] . '/' . $file->getKey();
 
         switch ($referenceType) {
-            case StorageUrlResolverInterface::NETWORK_PATH:
-                $url = $this->assetPackages->getUrl($path, 'unversioned');
-                break;
             case StorageUrlResolverInterface::PERMANENT_URL:
                 $url = sprintf('%s/%s', $this->permanentBaseUrl, $file->getKey());
                 break;
             case StorageUrlResolverInterface::ABSOLUTE_URL:
                 $url = $this->router->getContext()->getScheme() . ':' . $this->assetPackages->getUrl($path, 'unversioned');
-                break;
-            case StorageUrlResolverInterface::ABSOLUTE_PATH:
-                $url = '/' . $path;
                 break;
             default:
                 throw new \LogicException('Undefined url $referenceType');
@@ -184,34 +183,35 @@ class LocalAdapterConfiguration extends AbstractAdapterConfiguration implements 
      */
     public static function createPermanentUrlResponse(Request $request, $scheme, $storageKey, $adapter, $storageInfo)
     {
-
-        $fileName = sprintf(__DIR__ . '/../../../../../web/%s/%s', $adapter['directory'], $storageKey);
+        // Assumption here that directories are relative to web/
+        $fileName = sprintf('%s/%s', $adapter['directory'], $storageKey);
+        if (!file_exists($fileName)) {
+            return new Response('', Response::HTTP_NOT_FOUND);
+        }
 
         if ($storageInfo['size_in_bytes'] > 1000000) {
             $response = new RedirectResponse(sprintf(
                 '%s://%s/%s/%s',
                 $scheme,
-                $parameters['parameters']['router.request_context.host'],
+                $adapter['http_host'],
                 rtrim($adapter['directory'], '/'),
                 $storageKey
             ));
 
             return $response;
-        } elseif (!file_exists($fileName)) {
-            return new Response('', Response::HTTP_NOT_FOUND);
-        } else {
-            $fileModified = filemtime($fileName);
-            $since = $request->server->get('HTTP_IF_MODIFIED_SINCE');
-            $requestedTime = !empty($since) ? strtotime($since) : null;
-
-            $response = new BinaryFileResponse($fileName, Response::HTTP_OK, ['Content-Type' => $storageInfo['mime_type']]);
-            $response->prepare($request);
-
-            if (!empty($requestedTime) && $fileModified <= $requestedTime) {
-                $response->setStatusCode(Response::HTTP_NOT_MODIFIED);
-            }
-
-            return $response;
         }
+
+        $fileModified = filemtime($fileName);
+        $since = $request->server->get('HTTP_IF_MODIFIED_SINCE');
+        $requestedTime = !empty($since) ? strtotime($since) : null;
+
+        $response = new BinaryFileResponse($fileName, Response::HTTP_OK, ['Content-Type' => $storageInfo['mime_type']]);
+        $response->prepare($request);
+
+        if (!empty($requestedTime) && $fileModified <= $requestedTime) {
+            $response->setStatusCode(Response::HTTP_NOT_MODIFIED);
+        }
+
+        return $response;
     }
 }

@@ -54,8 +54,24 @@
                             <td class="no-borders">{{ file.id }}</td>
                         </tr>
                         <tr>
-                            <td><strong>Full URL</strong></td>
-                            <td>{{ storage_url(file) }}</td>
+                            <td><strong>Reference URLs</strong></td>
+                            <td>
+                                <dl class="dl-horizontal">
+                                    <dt>Absolute URL</dt>
+                                    <dd>
+                                        <a href="{{ storage_url(file, 'absolute_url') }}" target="_blank">
+                                            {{ storage_url(file, 'absolute_url') }} <i class="fa fa-external-link"></i>
+                                        </a>
+                                    </dd>
+
+                                    <dt>Permanent URL</dt>
+                                    <dd>
+                                        <a href="{{ storage_url(file, 'permanent_url') }}" target="_blank">
+                                            {{ storage_url(file, 'permanent_url') }} <i class="fa fa-external-link"></i>
+                                        </a>
+                                    </dd>
+                                </dl>
+                            </td>
                         </tr>
                         <tr>
                             <td><strong>Storage</strong></td>

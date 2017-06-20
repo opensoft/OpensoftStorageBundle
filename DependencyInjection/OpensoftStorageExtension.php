@@ -24,6 +24,16 @@ class OpensoftStorageExtension extends Extension
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');
 
+        $container->setParameter('opensoft_storage.parameter.permanent_base_url', $config['permanent_url']['base_url']);
+
+        // Set the default request matcher based on the strategy selected
+        if ($config['permanent_url']['strategy'] == 'http_host') {
+            $container->setAlias('opensoft_storage.request_matcher.default_request_matcher', 'opensoft_storage.request_matcher.http_host_request_matcher');
+            // Set parameters for the opensoft_storage.request_matcher.http_host_request_matcher service
+            $container->setParameter('opensoft_storage.parameter.permanent.http_host', $config['permanent_url']['http_host']);
+        }
+
+
         $container->setAlias('opensoft_storage.storage_type_provider', $config['storage_type_provider_service']);
     }
 }

@@ -11,25 +11,14 @@ interface StorageUrlResolverInterface
 {
 
     /**
-     * Generates an absolute URL, e.g. "http://example.com/dir/file".
+     * Generates an absolute URL, e.g. "https://example.com/dir/file".
      */
     const ABSOLUTE_URL = 'absolute_url';
 
     /**
-     * Generates an absolute path, e.g. "/dir/file".
-     */
-    const ABSOLUTE_PATH = 'absolute_path';
-
-    /**
-     * Generates a network path, e.g. "//example.com/dir/file".
-     * Such reference reuses the current scheme but specifies the host.
-     */
-    const NETWORK_PATH = 'network';
-
-    /**
      * Generates a url to be used through the app_file.php proxy service.
      */
-    const PERMANENT_URL = 'permanent';
+    const PERMANENT_URL = 'permanent_url';
 
     /**
      * Retrieve a URL for a specific file that can be given to the browser
