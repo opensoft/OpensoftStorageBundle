@@ -193,7 +193,8 @@ class LocalAdapterConfiguration extends AbstractAdapterConfiguration implements 
             $response = new RedirectResponse(sprintf(
                 '%s://%s/%s/%s',
                 $scheme,
-                $adapter['http_host'],
+//                $adapter['http_host'],
+                isset($adapter['http_host']) ? $adapter['http_host'] : $request->getHttpHost(), // TODO - remove after all storages have http_host values
                 rtrim($adapter['directory'], '/'),
                 $storageKey
             ));
