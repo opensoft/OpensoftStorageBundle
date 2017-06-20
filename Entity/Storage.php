@@ -123,6 +123,13 @@ class Storage
     {
         $class = $this->adapterOptions['class'];
 
+        // BC shim to support new namespaces while extracting storage engine code into bundle
+        if ($class == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\LocalAdapterConfiguration') {
+            $class = LocalAdapterConfiguration::class;
+        } elseif ($class == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\AwsS3AdapterConfiguration') {
+            $class = AwsS3AdapterConfiguration::class;
+        }
+
         return $class::getName();
     }
 
@@ -147,7 +154,16 @@ class Storage
      */
     public function isLocal()
     {
-        return $this->adapterOptions['class'] == LocalAdapterConfiguration::class;
+        $class = $this->adapterOptions['class'];
+
+        // BC shim to support new namespaces while extracting storage engine code into bundle
+        if ($class == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\LocalAdapterConfiguration') {
+            $class = LocalAdapterConfiguration::class;
+        } elseif ($class == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\AwsS3AdapterConfiguration') {
+            $class = AwsS3AdapterConfiguration::class;
+        }
+
+        return $class == LocalAdapterConfiguration::class;
     }
 
     /**
