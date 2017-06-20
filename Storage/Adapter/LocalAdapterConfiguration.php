@@ -100,12 +100,12 @@ class LocalAdapterConfiguration extends AbstractAdapterConfiguration implements 
         $resolver = new OptionsResolver();
 
         $resolver->setRequired([
-            'directory',
-            'http_host'
+            'directory'
         ]);
         $resolver->setDefined([
             'create',
-            'mode'
+            'mode',
+            'http_host'
         ]);
         $resolver->setDefaults([
             'create' => false,
