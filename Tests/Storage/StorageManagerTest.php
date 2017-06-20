@@ -53,7 +53,7 @@ class StorageManagerTest extends \PHPUnit_Framework_TestCase
             new Packages(new Package(new StaticVersionStrategy('v1')), [
                 'unversioned' => new UrlPackage(['//onp.dev'], new EmptyVersionStrategy())
             ]),
-            "/testserver.dev/app_file.php"
+            "/testserver.dev"
         ));
 
         $this->doctrine = $this->createMock(ManagerRegistry::class);

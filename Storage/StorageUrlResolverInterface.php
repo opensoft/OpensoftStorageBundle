@@ -16,7 +16,7 @@ interface StorageUrlResolverInterface
     const ABSOLUTE_URL = 'absolute_url';
 
     /**
-     * Generates a url to be used through the app_file.php proxy service.
+     * Generates a url to be handled by the RequestListener permanent url strategy
      */
     const PERMANENT_URL = 'permanent_url';
 
