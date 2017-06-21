@@ -1,13 +1,38 @@
+Storage Manager
+---------------
+
+The `StorageManagerInterface` is the primary service provided by the OpensoftStorageBundle.  Use it within your application
+to write and read files from the internal storage engine.
+
+Example:
+
+```php
 <?php
 
-namespace Opensoft\StorageBundle\Storage;
+class SampleController extends Controller
+{
+    public function storeAction(Post $post)
+    {
+        $storageManager = $this->get('storage_manager');
 
-use Gaufrette\Filesystem;
-use Opensoft\StorageBundle\Entity\Storage;
-use Opensoft\StorageBundle\Entity\StorageFile;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+        $fileToStore = '/tmp/my-file.txt';
+
+        $storedFile = $storageManager->storeFileFromLocalPath(1, $fileToStore, null, true);
+
+        // associate the stored file with some domain entity
+        $post->addAttachedFile($storedFile);
+        $this->persist($post, true);
+
+        return $this->redirectToRoute('show_post', ['id' => $post->getId()]);
+    }
+}
+
+
+```
+
+The interface for the `storage_manager` is included here for reference:
+
+```php
 
 /**
  * Provides an interface for stored files in the application.
@@ -102,3 +127,5 @@ interface StorageManagerInterface
      */
     public function returnStorageFileDownloadResponse(StorageFile $storageFile, array $additionalHeaders = [], $isInlineDisposition = false);
 }
+
+```

@@ -43,7 +43,15 @@ class AppKernel extends Kernel
 }
 ```
 
-Step 3: Add configuration via config.yml
+Step 3: Provide Types
+---------------------
+
+Create a service within your application which implements the `StorageFileTypeProviderInterface`.  Its service ID should
+be used below for the `storage_type_provider_service` configuration option.
+
+More information can be found in the more specific documentation for the [Storage File Type Provider](type_provider.md)
+
+Step 4: Add configuration via config.yml
 -------------------------
 
 _TODO: Explain_
@@ -60,4 +68,18 @@ opensoft_storage:
         strategy: "http_host"
         http_host: "%permanent.http_host%"
 
+```
+
+Step 5: Add controllers
+-----------------------
+
+Add the administrative controllers for basic CRUD operations on Storage, StorageFile and StoragePolicy entities.
+
+Includes a `ROLE_ADMIN_STORAGE_MANAGER` requirement for users doing more than just viewing operations.
+
+```yaml
+opensoft_storage:
+    resource: "@OpensoftStorageBundle/Controller/"
+    type:     annotation
+    prefix:   /
 ```
