@@ -7,3 +7,4 @@ Documentation
 4. [Available Commands](commands.md)
 5. [Admin Controllers](controllers.md)
 6. [Adapters](adapters.md)
+7. [Generating URLs](urls.md)

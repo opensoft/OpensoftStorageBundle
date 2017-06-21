@@ -16,7 +16,7 @@ Screenshots
 
 Important Note:  These screenshots were taken of a parent application with a slightly overridden theme than is natively provided
 in this bundle.  The parent application uses a Bootstrap3 backed Inspinia Administrative theme for display.  The native templates
-provided by this bundle to not look _quite_ as good, but they are still Bootstrap3 backed and fully functional.
+provided by this bundle do not look _quite_ as good, but they are still Bootstrap3 backed and fully functional.
 
 **Creating New Storage Space**
 

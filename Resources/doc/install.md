@@ -54,8 +54,6 @@ More information can be found in the more specific documentation for the [Storag
 Step 4: Add configuration via config.yml
 -------------------------
 
-_TODO: Explain_
-
 Example:
 
 ```yml

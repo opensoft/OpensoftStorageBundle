@@ -15,7 +15,7 @@ considerations:
 2.  Database level tracking for all our files.  We should be able to easily query how many, what type, their sizes, which storage location they were stored in.
 3.  Strong FK relationships between normal database objects and these stored files.  This allows us to know exact how each file is linked to other relationships in the database, allowing for cascade related behaviors associated with those files.  It also helps us prevent orphaned storage files that aren't linked properly to anything.
 4.  A storage file write, deletion and movement policy between different storage locations over time.
-5.  A "permanent url" concept that can resolve URL's to the stored files, no matter which storage system the exist on.
+5.  A "permanent url" concept that can resolve URL's to the stored files, no matter which storage system they exist on.
 
 To accomplish this goal, we've designed the OpensoftStorageBundle to handle these use cases for us.  It combines tools from
 [knplabs/gaufrette](https://github.com/KnpLabs/Gaufrette), Doctrine entites for Storages, StorageFiles, and StoragePolicies, some
