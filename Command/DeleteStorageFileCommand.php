@@ -3,6 +3,7 @@
 namespace Opensoft\StorageBundle\Command;
 
 use Opensoft\StorageBundle\Entity\Repository\StorageFileRepository;
+use Opensoft\StorageBundle\Entity\StorageFile;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
