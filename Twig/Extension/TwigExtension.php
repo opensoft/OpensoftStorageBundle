@@ -8,7 +8,7 @@ use Opensoft\StorageBundle\Storage\StorageUrlResolverInterface;
 /**
  * @author Richard Fullmer <richard.fullmer@opensoftdev.com>
  */
-class StorageUrlExtension extends \Twig_Extension
+class TwigExtension extends \Twig_Extension
 {
 
     /**
@@ -31,6 +31,13 @@ class StorageUrlExtension extends \Twig_Extension
         ];
     }
 
+    public function getFilters()
+    {
+        return [
+            new \Twig_SimpleFilter('format_bytes',  array($this, 'formatBytes')),
+        ];
+    }
+
     /**
      * @param StorageFile $file
      * @param string $referenceType
@@ -42,12 +49,34 @@ class StorageUrlExtension extends \Twig_Extension
     }
 
     /**
+     * @param $number
+     * @param bool $base2conversion
+     * @return string
+     */
+    public function formatBytes($number, $base2conversion = true)
+    {
+        if (!is_numeric($number)) {
+            return '';
+        }
+
+        $unit = $base2conversion ? 1024 : 1000;
+        if ($number < $unit) {
+            return $number.' B';
+        }
+        $exp = intval((log($number) / log($unit)));
+        $pre = ($base2conversion ? 'kMGTPE' : 'KMGTPE');
+        $pre = $pre[$exp - 1] . ($base2conversion ? '' : 'i');
+
+        return sprintf('%.1f %sB', $number / pow($unit, $exp), $pre);
+    }
+
+    /**
      * Returns the name of the extension.
      *
      * @return string The extension name
      */
     public function getName()
     {
-        return 'storage_url';
+        return 'storage_engine';
     }
 }

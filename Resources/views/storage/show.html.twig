@@ -163,31 +163,30 @@
                     <form class="form-inline" id="filter-form" method="get" action="{{ path('opensoft_storage_show_storage', {id: storage.id}) }}">
                         <div class="form-group">
                             <label>File type</label>
-                            <div>{{ form_widget(form.type) }}</div>
+                            {{ form_widget(form.type) }}
                         </div>
                         <div class="form-group">
                             <label>File size</label>
-                            <div>
-                                <div class="inline-block">
-                                    <select class="form-control" name="file_size_condition_type" id="file_size_condition_type">
-                                        <option value="any">Any size</option>
-                                        <option value="lt">Less than</option>
-                                        <option value="gt">Greater than</option>
-                                    </select>
-                                </div>
-                                <div class="inline-block">
-                                    <input id="file_size_value" class="form-control">
-                                </div>
-                                <div class="inline-block">
-                                    <select class="form-control" name="file_size_units" id="file_size_units">
-                                        <option value="KB">KB</option>
-                                        <option value="MB">MB</option>
-                                    </select>
-                                </div>
-                                <div id="file_size_hidden" class="hidden">
-                                    {{ form_widget(form.size) }}
-                                </div>
+
+                            <div id="file_size_hidden" class="hidden">
+                                {{ form_widget(form.size) }}
                             </div>
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" name="file_size_condition_type" id="file_size_condition_type">
+                                <option value="any">Any size</option>
+                                <option value="lt">Less than</option>
+                                <option value="gt">Greater than</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input id="file_size_value" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" name="file_size_units" id="file_size_units">
+                                <option value="KB">KB</option>
+                                <option value="MB">MB</option>
+                            </select>
                         </div>
                         <button class="btn btn-primary" type="submit" name="submit-filter" style="vertical-align: bottom;">
                             <i class="fa fa-filter"></i>

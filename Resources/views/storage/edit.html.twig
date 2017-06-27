@@ -63,15 +63,15 @@
 {% block opensoft_storage_foot_script %}
     {{ parent() }}
     <script>
-        $('#storage-adapter-form').on('change', '#storage_type_adapterOptions_class', function() {
+        jQuery('#storage-adapter-form').on('change', '#storage_type_adapterOptions_class', function() {
             // ... retrieve the corresponding form.
             var $form = $(this).closest('form');
             // Simulate form data, but only include the selected adapter value.
             var data = {};
-            var adapterType = $('#storage_type_adapterOptions_class');
+            var adapterType = jQuery('#storage_type_adapterOptions_class');
             data[adapterType.attr('name')] = adapterType.val();
             // Submit data via AJAX to the form's action path.
-            $.ajax({
+            jQuery.ajax({
                 url : $form.attr('action'),
                 type: $form.attr('method'),
                 data : data,

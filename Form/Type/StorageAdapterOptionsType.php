@@ -39,6 +39,7 @@ class StorageAdapterOptionsType extends AbstractType
             ->add('class', ChoiceType::class, [
                 'label' => 'Adapter Type',
                 'choices' => array_flip($adapterResolver->getAdapterChoices()),
+                'choices_as_values' => true,
             ])
         ;
 
