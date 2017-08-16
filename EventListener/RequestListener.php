@@ -74,7 +74,9 @@ class RequestListener implements EventSubscriberInterface
         $storageInfo = $this->doctrine->getConnection()->fetchAssoc($sql, [$storageKey]);
 
         if (empty($storageInfo['adapter_options'])) {
-            return new Response('', Response::HTTP_NOT_FOUND);
+            $event->setResponse(new Response('', Response::HTTP_NOT_FOUND));
+            
+            return;
         }
 
         $adapter = unserialize($storageInfo['adapter_options']);
