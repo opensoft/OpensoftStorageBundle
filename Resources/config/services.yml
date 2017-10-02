@@ -103,3 +103,10 @@ services:
             - '%opensoft_storage.parameter.permanent_base_url%'
         tags:
             - { name: 'opensoft_storage.adapter' }
+    opensoft_storage.adapter.azure_blob:
+        class: Opensoft\StorageBundle\Storage\Adapter\AzureAdapterConfiguration
+        public: false
+        arguments:
+            - '%opensoft_storage.parameter.permanent_base_url%'
+        tags:
+            - { name: 'opensoft_storage.adapter' }
