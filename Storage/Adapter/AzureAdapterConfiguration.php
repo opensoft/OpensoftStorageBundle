@@ -13,6 +13,7 @@ namespace Opensoft\StorageBundle\Storage\Adapter;
 use Gaufrette\Adapter;
 use Gaufrette\Adapter\AzureBlobStorage\BlobProxyFactory;
 use Gaufrette\Adapter\AzureBlobStorage;
+use MicrosoftAzure\Storage\Blob\Models\CreateContainerOptions;
 use Opensoft\StorageBundle\Entity\StorageFile;
 use Opensoft\StorageBundle\Storage\StorageUrlResolverInterface;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -55,11 +56,7 @@ class AzureAdapterConfiguration extends AbstractAdapterConfiguration
             ])
             ->add('ContainerName', TextType::class, [
                 'required' => false,
-                'help_block' => 'If you specify a container name, adapter will use only that container for all blobs.  If you omit specifying a container, it will use a so-called multi-container mode in which container name is determined directly from key. This allows for more flexibility if you\'re using dedicated storage accounts per asset type (ie. one for images, one for videos) as you get to group assets logically, use container-level privileges, etc.'
-            ])
-            ->add('create', CheckboxType::class, [
-                'required' => false,
-                'help_block' => 'Whether to create the container name if it does not exist.'
+                'help_block' => 'If you specify an existing container name, adapter will use only that container for all blobs.  If you omit specifying a container, it will use a so-called multi-container mode in which container name is determined directly from key. This allows for more flexibility if you\'re using dedicated storage accounts per asset type (ie. one for images, one for videos) as you get to group assets logically, use container-level privileges, etc.'
             ])
         ;
     }
@@ -74,11 +71,17 @@ class AzureAdapterConfiguration extends AbstractAdapterConfiguration
     {
         $factory = new BlobProxyFactory($options['ConnectionString']);
 
-        $adapter = new AzureBlobStorage(
-            $factory,
-            isset($options['ContainerName']) ? $options['ContainerName'] : null,
-            $options['create']
-        );
+        if (!empty($options['ContainerName'])) {
+            // single container mode
+            return new AzureBlobStorage($factory, $options['ContainerName']);
+        }
+
+        $adapter = new AzureBlobStorage($factory);
+
+        // make auto-created containers public by default
+        $containerOptions = new CreateContainerOptions();
+        $containerOptions->setPublicAccess(true);
+        $adapter->setCreateContainerOptions($containerOptions);
 
         return $adapter;
     }
@@ -97,8 +100,7 @@ class AzureAdapterConfiguration extends AbstractAdapterConfiguration
         ]);
 
         $resolver->setDefined([
-            'ContainerName',
-            'create',
+            'ContainerName'
         ]);
 
         return $resolver;
@@ -133,6 +135,8 @@ class AzureAdapterConfiguration extends AbstractAdapterConfiguration
     public function getUrl(StorageFile $file, $referenceType = StorageUrlResolverInterface::ABSOLUTE_URL)
     {
         $adapterOptions = $file->getStorage()->getAdapterOptions();
+//        $factory = (new BlobProxyFactory($adapterOptions['ConnectionString']))->create()->getServiceProperties();
+//        $factory
 
         switch ($referenceType) {
             case StorageUrlResolverInterface::PERMANENT_URL:
