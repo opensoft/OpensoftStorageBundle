@@ -9,6 +9,7 @@ use Gaufrette\StreamWrapper;
 use Opensoft\StorageBundle\Entity\Storage;
 use Opensoft\StorageBundle\Entity\StorageFile;
 use Opensoft\StorageBundle\Entity\StoragePolicy;
+use Opensoft\StorageBundle\Exception\InvalidPathException;
 use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesser;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -162,7 +163,7 @@ class StorageManager implements StorageManagerInterface
     public function storeFileFromLocalPath($type, $path, $newFilename = null, $unlinkAfterStore = false)
     {
         if (!file_exists($path)) {
-            throw new \InvalidArgumentException(sprintf("Cannot store file from non-existent path at '%s'", $path));
+            throw new InvalidPathException(sprintf("Cannot store file from non-existent path at '%s'", $path));
         }
         $this->validateFileStorageType($type);
 
