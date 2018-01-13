@@ -2,9 +2,9 @@
 
 namespace Opensoft\StorageBundle\Storage\Adapter;
 
+use Gaufrette\Adapter\Local;
 use Opensoft\StorageBundle\Entity\Storage;
 use Opensoft\StorageBundle\Entity\StorageFile;
-use Opensoft\StorageBundle\Storage\Gaufrette\Adapter\Local;
 use Opensoft\StorageBundle\Storage\StorageUrlResolverInterface;
 use Symfony\Component\Asset\Packages;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
