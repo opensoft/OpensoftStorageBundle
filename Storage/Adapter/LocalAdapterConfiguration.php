@@ -132,7 +132,7 @@ class LocalAdapterConfiguration extends AbstractAdapterConfiguration implements 
                 $url = sprintf('%s/%s', $this->permanentBaseUrl, $file->getKey());
                 break;
             case StorageUrlResolverInterface::ABSOLUTE_URL:
-                $url = $this->router->getContext()->getScheme() . ':' . $this->assetPackages->getUrl($path, 'unversioned');
+                $url = $this->router->getContext()->getScheme() . ':' . $this->assetPackages->getUrl($path);
                 break;
             default:
                 throw new \LogicException('Undefined url $referenceType');
