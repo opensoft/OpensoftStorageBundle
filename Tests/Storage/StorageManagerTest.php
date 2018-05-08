@@ -189,6 +189,32 @@ class StorageManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($storedFile->delete());
     }
 
+    public function testAcceptExistingFile()
+    {
+        $key = $this->storageManager->issueNewKey();
+        $tmpStorage = $this->getTmpStoragePath();
+
+        $tempFileLocation = $tmpStorage . '/' . $key;
+        mkdir(dirname($tempFileLocation), 0777, true);
+        $content = 'this is the content';
+        file_put_contents($tempFileLocation, $content);
+
+        $storedFile = $this->storageManager->accept(1, $key, [
+            'contentHash' => md5_file($tempFileLocation),
+            'size' => filesize($tempFileLocation),
+            'mimeType' => 'text/plain',
+        ]);
+
+        $this->assertEquals('this is the content', $storedFile->getContent());
+        $this->assertEquals(1, $storedFile->getType());
+        $this->assertEquals(19, $storedFile->getSize());
+        $this->assertTrue($storedFile->isLocal());
+        $this->assertFileExists($tempFileLocation);
+
+        $this->assertTrue($storedFile->delete());
+        $this->assertFileNotExists($tempFileLocation);
+    }
+
     /**
      * @param string $directory
      * @return Storage
@@ -216,10 +242,15 @@ class StorageManagerTest extends \PHPUnit_Framework_TestCase
         return $storage;
     }
 
+    private function getTmpStoragePath()
+    {
+        return sys_get_temp_dir() . '/tmpstorage';
+    }
+
     private function setUpSaveExpectations()
     {
         $storageRepository = $this->getMockBuilder(StorageRepository::class)->disableOriginalConstructor()->getMock();
-        $storageRepository->expects($this->any())->method('findOneByActive')->willReturn($this->generateTmpStorage(sys_get_temp_dir() . '/tmpstorage'));
+        $storageRepository->expects($this->any())->method('findOneByActive')->willReturn($this->generateTmpStorage($this->getTmpStoragePath()));
 
         $storagePolicyRepository = $this->getMockBuilder(StoragePolicyRepository::class)->disableOriginalConstructor()->getMock();
         $storagePolicyRepository->expects($this->any())->method('findOneByType')->willReturn(null);

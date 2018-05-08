@@ -108,7 +108,7 @@ class StorageManager implements StorageManagerInterface
      */
     public function store($type, $content, array $options = [])
     {
-        $options = $this->getOptionsResolver()->resolve($options);
+        $options = $this->getStoreOptionsResolver()->resolve($options);
 
         $this->validateFileStorageType($type);
 
@@ -130,6 +130,52 @@ class StorageManager implements StorageManagerInterface
         $this->saveToDatabase($file);
 
         return $file;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function accept($type, $key, array $options = [])
+    {
+        $options = $this->getAcceptOptionsResolver()->resolve($options);
+        $storage = $this->getStorageFromWritePolicy($type);
+
+        $file = new StorageFile(
+            $key,
+            $this->getFilesystemForStorage($storage),
+            $storage
+        );
+        $file->setType($type);
+
+        $file->setContentHash($options['contentHash']);
+        $file->setSize($options['size']);
+        $file->setMimeType($options['mimeType']);
+        $file->setFileMetadata($options['metadata']);
+
+        if (!$file->exists()) {
+            throw new \RuntimeException(
+                sprintf(
+                    "Could not accept to storage '%s' with key '%s'.  Resultant file does not exist.",
+                    $storage->getName(),
+                    $file->getKey()
+                )
+            );
+        }
+
+        $this->saveToDatabase($file);
+
+        return $file;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function issueNewKey(array $options = [])
+    {
+        $options = $this->getStoreOptionsResolver()->resolve($options);
+
+        $newFilename = $this->getFilename($options);
+        return $this->storageKeyGenerator->generate($newFilename);
     }
 
     /**
@@ -537,7 +583,12 @@ class StorageManager implements StorageManagerInterface
         }
     }
 
-    private function getOptionsResolver()
+    /**
+     * Options resolver for storing files
+     *
+     * @return OptionsResolver
+     */
+    private function getStoreOptionsResolver()
     {
         $resolver = new OptionsResolver();
 
@@ -554,6 +605,38 @@ class StorageManager implements StorageManagerInterface
         $resolver->setAllowedTypes('unlinkAfterStore', 'bool');
 
         $resolver->setDefault('unlinkAfterStore', false);
+        $resolver->setDefault('metadata', []);
+
+        return $resolver;
+    }
+
+    /**
+     * Options resolver for accepting files
+     *
+     * @return OptionsResolver
+     */
+    private function getAcceptOptionsResolver()
+    {
+        $resolver = new OptionsResolver();
+
+        $resolver->setDefined([
+            'contentHash',
+            'size',
+            'mimeType',
+            'metadata',
+        ]);
+
+        $resolver->setRequired([
+            'contentHash',
+            'size',
+            'mimeType',
+        ]);
+
+        $resolver->setAllowedTypes('contentHash', 'string');
+        $resolver->setAllowedTypes('size', 'int');
+        $resolver->setAllowedTypes('mimeType', 'string');
+        $resolver->setAllowedTypes('metadata', 'array');
+
         $resolver->setDefault('metadata', []);
 
         return $resolver;
