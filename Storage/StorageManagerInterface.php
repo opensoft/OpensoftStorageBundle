@@ -132,4 +132,33 @@ interface StorageManagerInterface
      * @return StreamedResponse|BinaryFileResponse
      */
     public function returnStorageFileDownloadResponse(StorageFile $storageFile, array $additionalHeaders = [], $isInlineDisposition = false);
+
+    /**
+     * Accept and save to database file already stored in filesystem
+     *
+     * options:
+     *
+     * - contentHash: (string) File contents md5 hash
+     * - size: (int) File size in bytes
+     * - mimeType: (string) File mime type
+     * - metadata: (array) An array of key/value pairs to pass into storage adapter.
+     *
+     * @param integer $type
+     * @param string $key
+     * @param array $options
+     * @return StorageFile
+     */
+    public function accept($type, $key, array $options = []);
+
+    /**
+     * Issue new key to store file directly to storage filesystem and accept it later into storage database.
+     *
+     * options:
+     *
+     * - newFilename: (string) Filename used to generate storage file key
+     *
+     * @param array $options
+     * @return string
+     */
+    public function issueNewKey(array $options = []);
 }
