@@ -9,11 +9,13 @@ use Gaufrette\StreamWrapper;
 use Opensoft\StorageBundle\Entity\Storage;
 use Opensoft\StorageBundle\Entity\StorageFile;
 use Opensoft\StorageBundle\Entity\StoragePolicy;
+use Psr\Http\Message\StreamInterface;
 use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesser;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * A service for dealing with storages.
@@ -72,31 +74,48 @@ class StorageManager implements StorageManagerInterface
     }
 
     /**
-     * Take an uploaded file given to Symfony and store it in permanent storage
-     *
-     * It is the callers responsibility to associate the returned entity with a relation and save it to the database.  The
-     * storage file itself will be independently stored by the storage manager.
-     *
-     * @param integer $type
-     * @param UploadedFile $uploadedFile
-     * @param string|null $newFilename
-     * @param bool $unlinkAfterStore
-     * @throws \RuntimeException If writing the file fails
-     * @return StorageFile
+     * {@inheritdoc}
      */
     public function storeUploadedFile($type, UploadedFile $uploadedFile, $newFilename = null, $unlinkAfterStore = true)
     {
+        $options = [];
+        if ($newFilename !== null) {
+            $options['newFilename'] = $newFilename;
+        }
+        if ($unlinkAfterStore !== false) {
+            $options['unlinkAfterStore'] = $unlinkAfterStore;
+        }
+        return $this->store($type, $uploadedFile, $options);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function storeFileFromLocalPath($type, $path, $newFilename = null, $unlinkAfterStore = false)
+    {
+        $options = [];
+        if ($newFilename !== null) {
+            $options['newFilename'] = $newFilename;
+        }
+        if ($unlinkAfterStore !== false) {
+            $options['unlinkAfterStore'] = $unlinkAfterStore;
+        }
+        return $this->store($type, $path, $options);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function store($type, $content, array $options = [])
+    {
+        $options = $this->getOptionsResolver()->resolve($options);
+
         $this->validateFileStorageType($type);
 
-        $path = $uploadedFile->getRealPath();
+        $options = $this->getContentOptions($content, $options);
+        $newFilename = $this->getFilename($options);
 
         $storage = $this->getStorageFromWritePolicy($type);
-
-        if (null === $newFilename) {
-            $newFilename = uniqid('gen' . substr(hash('sha256', $path), 0, 4)) . '.' . $uploadedFile->getClientOriginalExtension();
-        }
-
-        $mimeType = $uploadedFile->getClientMimeType();
 
         $file = new StorageFile(
             $this->storageKeyGenerator->generate($newFilename),
@@ -104,40 +123,9 @@ class StorageManager implements StorageManagerInterface
             $storage
         );
 
-        $bytes = $this->streamCopy($path, $this->getIOStream($storage->getSlug(), $file->getKey()));
+        $this->storeFileContent($file, $content, $options);
 
-        if ($bytes == 0) {
-            throw new \RuntimeException(
-                sprintf(
-                    "Unable to copy file to storage '%s' with key '%s' from local path '%s'.  Zero bytes copied.",
-                    $storage->getName(),
-                    $file->getKey(),
-                    $path
-                )
-            );
-        }
-
-        if (!$file->exists()) {
-            throw new \RuntimeException(
-                sprintf(
-                    "Could not stream copy to storage '%s' with key '%s'.  Resultant file does not exist.",
-                    $storage->getName(),
-                    $file->getKey()
-                )
-            );
-        }
-
-        // Ensure other fields on the file are set properly
-        $file->setMimeType($mimeType);
-        $file->setContentHash(md5_file($path));
-        $file->setSize($bytes);
         $file->setType($type);
-        // ContentType is used by the AmazonAWSS3 Adapter
-        $file->setFileMetadata(['contentType' => $mimeType]);
-
-        if ($unlinkAfterStore) {
-            unlink($path);
-        }
 
         $this->saveToDatabase($file);
 
@@ -145,55 +133,44 @@ class StorageManager implements StorageManagerInterface
     }
 
     /**
-     * Creates and stores a file from a local path already on the system.  The file will be copied to a new location
-     * in permanent storage.
-     *
-     * It is the callers responsibility to associate the returned entity with a relation and save it to the database
-     *
-     * @param integer $type A type for this file.  See StorageFile::$types for a list
-     * @param string $path The local path to the file which is being stored
-     * @param string|null $newFilename A new filename for the stored file
-     * @param bool $unlinkAfterStore
-     * @throws \InvalidArgumentException If the file at $path cannot be found
-     * @throws \UnexpectedValueException If no active storages are found
-     * @throws \RuntimeException If fail to write to storage
-     * @return StorageFile
+     * @param StorageFile $file
+     * @param UploadedFile|StreamInterface|string $content
+     * @param array $options
      */
-    public function storeFileFromLocalPath($type, $path, $newFilename = null, $unlinkAfterStore = false)
+    private function storeFileContent(StorageFile $file, $content, $options = [])
     {
-        if (!file_exists($path)) {
-            throw new \InvalidArgumentException(sprintf("Cannot store file from non-existent path at '%s'", $path));
-        }
-        $this->validateFileStorageType($type);
+        $storage = $file->getStorage();
 
-        $storage = $this->getStorageFromWritePolicy($type);
+        $metadata = $options['metadata'];
 
-        if (null === $newFilename) {
-            $newFilename = uniqid('gen' . substr(hash('sha256', $path), 0, 4));
+        if (!empty($options['realPath'])) {
+            $path = $options['realPath'];
+            $bytes = $this->streamCopy($path, $this->getIOStream($storage->getSlug(), $file->getKey()));
 
-            $pathParts = pathinfo($path);
-            if (isset($pathParts['extension'])) {
-                $newFilename .= '.' . $pathParts['extension'];
+            $file->setContentHash(md5_file($path));
+            $file->setSize($bytes);
+
+            if (empty($metadata['ContentType'])) {
+                $metadata['ContentType'] = MimeTypeGuesser::getInstance()->guess($path);
             }
+
+            $file->setFileMetadata($metadata);
+        } else {
+            if (empty($metadata['ContentType'])) {
+                $metadata['ContentType'] = 'binary/octet-stream';
+            }
+
+            $bytes = $file->setContent($content, $metadata);
         }
 
-        $mimeType = MimeTypeGuesser::getInstance()->guess($path);
-
-        $file = new StorageFile(
-            $this->storageKeyGenerator->generate($newFilename),
-            $this->getFilesystemForStorage($storage),
-            $storage
-        );
-
-        $bytes = $this->streamCopy($path, $this->getIOStream($storage->getSlug(), $file->getKey()));
+        $file->setMimeType($metadata['ContentType']);
 
         if ($bytes == 0) {
             throw new \RuntimeException(
                 sprintf(
-                    "Unable to copy file to storage '%s' with key '%s' from local path '%s'.  Zero bytes copied.",
+                    "Unable to stream file to storage '%s' with key '%s'.  Zero bytes streamed.",
                     $storage->getName(),
-                    $file->getKey(),
-                    $path
+                    $file->getKey()
                 )
             );
         }
@@ -201,28 +178,82 @@ class StorageManager implements StorageManagerInterface
         if (!$file->exists()) {
             throw new \RuntimeException(
                 sprintf(
-                    "Could not stream copy to storage '%s' with key '%s'.  Resultant file does not exist.",
+                    "Could not stream to storage '%s' with key '%s'.  Resultant file does not exist.",
                     $storage->getName(),
                     $file->getKey()
                 )
             );
         }
 
-        // Ensure other fields on the file are set properly
-        $file->setMimeType($mimeType);
-        $file->setContentHash(md5_file($path));
-        $file->setSize($bytes);
-        $file->setType($type);
-        // ContentType is used by the AmazonAWSS3 Adapter
-        $file->setFileMetadata(['contentType' => $mimeType]);
+        $this->unlinkIfNeeded($options);
+    }
 
-        if ($unlinkAfterStore) {
-            unlink($path);
+    /**
+     * Return generated filename
+     *
+     * @param array $options
+     * @return string
+     */
+    private function getFilename($options)
+    {
+        if (!empty($options['newFilename'])) {
+            return $options['newFilename'];
         }
 
-        $this->saveToDatabase($file);
+        if (!empty($options['originalFilename'])) {
+            $path = $options['originalFilename'];
+        } else if (!empty($options['realPath'])) {
+            $path = $options['realPath'];
+        } else {
+            $path = uniqid();
+        }
 
-        return $file;
+        $newFilename = uniqid('gen' . substr(hash('sha256', $path), 0, 4));
+
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        if ($extension != null) {
+            $newFilename .= '.' . $extension;
+        }
+
+        return $newFilename;
+    }
+
+    /**
+     * Enrich options with available content metadata
+     *
+     * @param UploadedFile|StreamInterface|string $content
+     * @param array $options
+     * @return array
+     */
+    private function getContentOptions($content, $options = [])
+    {
+        if ($content instanceof UploadedFile) {
+            $options['realPath'] = $content->getRealPath();
+            $options['originalFilename'] = $content->getClientOriginalName();
+            $options['metadata']['ContentType'] = $content->getClientMimeType();
+        } else if (is_string($content)) {
+            $options['realPath'] = $content;
+        }
+
+        return $options;
+    }
+
+    /**
+     * Unlink original file if real path is known and unlink param is present
+     *
+     * @param array $options
+     */
+    private function unlinkIfNeeded($options)
+    {
+        if (empty($options['realPath'])) {
+            return;
+        }
+
+        if ($options['unlinkAfterStore'] === false) {
+            return;
+        }
+
+        unlink($options['realPath']);
     }
 
     /**
@@ -504,5 +535,27 @@ class StorageManager implements StorageManagerInterface
         if (!isset($availableTypes[$type])) {
             throw new \InvalidArgumentException(sprintf("StorageFile type out of range.  Allowed values:  '%s'", implode(', ', array_keys($availableTypes))));
         }
+    }
+
+    private function getOptionsResolver()
+    {
+        $resolver = new OptionsResolver();
+
+        $resolver->setDefined([
+            'newFilename',
+            'originalFilename',
+            'metadata',
+            'unlinkAfterStore',
+        ]);
+
+        $resolver->setAllowedTypes('newFilename', 'string');
+        $resolver->setAllowedTypes('originalFilename', 'string');
+        $resolver->setAllowedTypes('metadata', 'array');
+        $resolver->setAllowedTypes('unlinkAfterStore', 'bool');
+
+        $resolver->setDefault('unlinkAfterStore', false);
+        $resolver->setDefault('metadata', []);
+
+        return $resolver;
     }
 }

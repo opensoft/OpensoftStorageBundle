@@ -4,6 +4,8 @@ namespace Opensoft\StorageBundle\Tests\Storage;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManager;
+use GuzzleHttp\Psr7\Stream;
+use function GuzzleHttp\Psr7\stream_for;
 use Opensoft\StorageBundle\Entity\Repository\StoragePolicyRepository;
 use Opensoft\StorageBundle\Entity\Repository\StorageRepository;
 use Opensoft\StorageBundle\Entity\Storage;
@@ -154,6 +156,32 @@ class StorageManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('this is the content', $storedFile->getContent());
         $this->assertEquals(1, $storedFile->getType());
         $this->assertEquals(19, $storedFile->getSize());
+        $this->assertTrue($storedFile->isLocal());
+        $this->assertFileExists($tempFileLocation);
+        unlink($tempFileLocation);
+
+        $this->assertTrue($storedFile->delete());
+    }
+
+    public function testStoreStream()
+    {
+        $filename = 'phpunit-test4.txt';
+        $tempFileLocation = sys_get_temp_dir() . '/' . $filename;
+        file_put_contents($tempFileLocation, 'this is the content');
+        $stream = stream_for(fopen($tempFileLocation, 'r'));
+
+        $storedFile = $this->storageManager->store(1, $stream, [
+            'originalFilename' => $filename,
+            'metadata' => [
+                'ContentLength' => filesize($tempFileLocation),
+                'ContentType' => 'text/plain'
+            ]
+        ]);
+
+        $this->assertEquals('this is the content', (string)$storedFile->getContent());
+        $this->assertEquals(1, $storedFile->getType());
+        $this->assertEquals(19, $storedFile->getSize());
+        $this->assertEquals(md5_file($tempFileLocation), $storedFile->getContentHash());
         $this->assertTrue($storedFile->isLocal());
         $this->assertFileExists($tempFileLocation);
         unlink($tempFileLocation);

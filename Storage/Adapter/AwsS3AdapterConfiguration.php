@@ -6,6 +6,7 @@ use Aws\S3\S3Client;
 use Gaufrette\Adapter\AwsS3;
 use Opensoft\StorageBundle\Entity\StorageFile;
 use Opensoft\StorageBundle\Storage\StorageUrlResolverInterface;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -19,6 +20,11 @@ use Symfony\Component\Routing\RouterInterface;
  */
 class AwsS3AdapterConfiguration extends AbstractAdapterConfiguration
 {
+    public static $availableSignatureVersions = [
+        'v4' => 'v4',
+        'v4-unsigned-body' => 'v4-unsigned-body'
+    ];
+
     /**
      * @var RouterInterface
      */
@@ -66,6 +72,12 @@ class AwsS3AdapterConfiguration extends AbstractAdapterConfiguration
                 'help_block' => 'Optional CNAME vs default AWS URL',
                 'label'=>'CNAME',
             ])
+            ->add('signature_version', ChoiceType::class, [
+                'required' => false,
+                'choices' => self::$availableSignatureVersions,
+                'help_block' => 'Signature version used to sign requests (<a target="_blank" href="https://docs.aws.amazon.com/general/latest/gr/signing_aws_api_requests.html">Signing AWS API Requests</a>).  Defaults to <a target="_blank" href="https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html">version 4</a>. Should be set to <code>v4-unsigned-body</code> to support upload streaming',
+                'placeholder' => false,
+            ])
         ;
     }
 
@@ -98,7 +110,8 @@ class AwsS3AdapterConfiguration extends AbstractAdapterConfiguration
             'credentials' => [
                 'key' => $options['key'],
                 'secret' => $options['secret'],
-            ]
+            ],
+            'signature_version' => !empty($options['signature_version']) ? $options['signature_version'] : 'v4',
         ]);
         $adapter = new AwsS3($service, $options['bucket_name'], [], true);
 
@@ -121,7 +134,10 @@ class AwsS3AdapterConfiguration extends AbstractAdapterConfiguration
         $resolver->setDefined([
             'cname',
             'region',
+            'signature_version',
         ]);
+
+        $resolver->setAllowedValues('signature_version', self::$availableSignatureVersions);
 
         return $resolver;
     }
