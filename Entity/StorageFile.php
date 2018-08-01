@@ -5,6 +5,10 @@ namespace Opensoft\StorageBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Gaufrette\File as GaufretteFile;
 use Gaufrette\Filesystem;
+use function GuzzleHttp\Psr7\stream_for;
+use GuzzleHttp\Psr7\StreamWrapper;
+use Opensoft\StorageBundle\Storage\HashingStream;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * StorageFile - an entity representing a stored file in our storage system.
@@ -126,17 +130,52 @@ class StorageFile extends GaufretteFile
     }
 
     /**
-     * @param string $content
-     * @param array $metadata optional metadata which should be send when write
-     * @return integer The number of bytes that were written into the file, or
-     *                 FALSE on failure
+     * {@inheritdoc}
+     */
+    public function getContent($metadata = array())
+    {
+        return $this->unwrap(parent::getContent($metadata));
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function setContent($content, $metadata = array())
     {
-        $size = parent::setContent($content, $metadata);
-        $this->contentHash = md5($content);
+        return parent::setContent($this->wrap($content), $metadata);
+    }
 
-        return $size;
+    /**
+     * Wrap content with hashing stream and convert it to resource
+     * so that underlying adapters do not try to use it as string
+     *
+     * @param resource|StreamInterface|string $content
+     * @return resource
+     */
+    private function wrap($content)
+    {
+        return StreamWrapper::getResource(
+            new HashingStream(stream_for($content),
+                function ($hash) {
+                    $this->contentHash = $hash;
+                }
+            )
+        );
+    }
+
+    /**
+     * Unwrap resource to Stream so that client code could operate with content as a string.
+     *
+     * @param resource|StreamInterface|string $content
+     * @return StreamInterface|string
+     */
+    private function unwrap($content)
+    {
+        if (is_resource($content)) {
+            return stream_for($content);
+        }
+
+        return $content;
     }
 
     /**
