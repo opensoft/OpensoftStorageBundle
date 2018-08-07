@@ -4,7 +4,6 @@ namespace Opensoft\StorageBundle\Tests\Storage;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManager;
-use GuzzleHttp\Psr7\Stream;
 use function GuzzleHttp\Psr7\stream_for;
 use Opensoft\StorageBundle\Entity\Repository\StoragePolicyRepository;
 use Opensoft\StorageBundle\Entity\Repository\StorageRepository;

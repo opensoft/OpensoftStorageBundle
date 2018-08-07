@@ -29,7 +29,8 @@
     "symfony/framework-bundle": "^2.7|^3.0",
     "symfony/validator": "^2.7|^3.0",
     "twig/twig": "^1.25|^2.0",
-    "psr/http-message": "^1.0"
+    "psr/http-message": "^1.0",
+    "guzzlehttp/psr7": "^1.4.1"
   },
   "require-dev": {
     "aws/aws-sdk-php": "^3.29",
