@@ -3,11 +3,12 @@
 namespace Opensoft\StorageBundle\Form\Extension;
 
 use Symfony\Component\Form\AbstractTypeExtension;
+use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-abstract class HelpTypeExtension extends AbstractTypeExtension
+class HelpTypeExtension extends AbstractTypeExtension
 {
     /**
      * {@inheritdoc}
@@ -21,6 +22,14 @@ abstract class HelpTypeExtension extends AbstractTypeExtension
             'help' => null,
             'help_block' => null,
         ));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getExtendedType()
+    {
+        return FormType::class;
     }
 
     /**

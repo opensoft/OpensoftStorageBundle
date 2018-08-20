@@ -37,15 +37,10 @@ services:
         tags:
             - { name: 'kernel.event_subscriber', lazy: true }
 
-    opensoft_storage.form.extension.text_type:
-        class: Opensoft\StorageBundle\Form\Extension\TextTypeExtension
+    opensoft_storage.form.extension.help_type:
+        class: Opensoft\StorageBundle\Form\Extension\HelpTypeExtension
         tags:
-            - { name: form.type_extension, extended_type: Symfony\Component\Form\Extension\Core\Type\TextType }
-
-    opensoft_storage.form.extension.checkbox_type:
-        class: Opensoft\StorageBundle\Form\Extension\CheckboxTypeExtension
-        tags:
-            - { name: form.type_extension, extended_type: Symfony\Component\Form\Extension\Core\Type\CheckboxType }
+        - { name: form.type_extension, extended_type: Symfony\Component\Form\Extension\Core\Type\FormType }
 
     #####################
     # Private Services ##
