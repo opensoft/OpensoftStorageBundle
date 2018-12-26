@@ -124,9 +124,7 @@ class PolicyExecuteCommand extends ContainerAwareCommand
         foreach ($query->iterate(null, AbstractQuery::HYDRATE_SCALAR) as $row) {
             $storageFile = $row[0];
 
-            $this->executeMove($storageFile['id'], $toStorage, $output);
-
-            $queued++;
+            $queued += $this->executeMove($storageFile['id'], $toStorage, $output);
         }
 
         return $queued;
@@ -143,7 +141,6 @@ class PolicyExecuteCommand extends ContainerAwareCommand
     {
         /** @var EntityManager $em */
         $em = $this->getContainer()->get('doctrine')->getManager();
-
 
         $qb = $em->createQueryBuilder()
             ->select('s')
@@ -166,9 +163,7 @@ class PolicyExecuteCommand extends ContainerAwareCommand
         foreach ($query->iterate(null, AbstractQuery::HYDRATE_SCALAR) as $row) {
             $storageFile = $row[0];
 
-            $this->executeDelete($storageFile['id'], $output);
-
-            $queued++;
+            $queued += $this->executeDelete($storageFile['id'], $output);
         }
 
         return $queued;
@@ -177,6 +172,7 @@ class PolicyExecuteCommand extends ContainerAwareCommand
     /**
      * @param int $storageFileId
      * @param OutputInterface $output
+     * @return int The number of storage files deleted
      */
     private function executeDelete($storageFileId, OutputInterface $output)
     {
@@ -189,7 +185,13 @@ class PolicyExecuteCommand extends ContainerAwareCommand
             $task->arguments(sprintf('%d', $storageFileId));
             $taskManager->queueTask($task);
 
-            return;
+            if ($taskManager->hasQueuedTask($task)) {
+                $output->writeln(sprintf('Delete already queued for storage file %s... skipping', $storageFileId));
+
+                return 0;
+            }
+
+            return 1;
         }
 
         // Execute the delete command directly
@@ -201,12 +203,15 @@ class PolicyExecuteCommand extends ContainerAwareCommand
         ];
 
         $command->run(new ArrayInput($arguments), $output);
+
+        return 1;
     }
 
     /**
      * @param int $storageFileId
      * @param Storage $toStorage
      * @param OutputInterface $output
+     * @return int The number of storage files that were moved
      */
     private function executeMove($storageFileId, Storage $toStorage, OutputInterface $output)
     {
@@ -218,9 +223,15 @@ class PolicyExecuteCommand extends ContainerAwareCommand
             $task->command('storage:move-file');
             $task->arguments(sprintf('%d %d', $storageFileId, $toStorage->getId()));
             $task->timeout(300)->idleTimeout(300);
+
+            if ($taskManager->hasQueuedTask($task)) {
+                $output->writeln(sprintf('Move already queued for storage file %s... skipping', $storageFileId));
+
+                return 0;
+            }
             $taskManager->queueTask($task);
 
-            return;
+            return 1;
         }
 
         // Execute the move command directly
@@ -233,5 +244,7 @@ class PolicyExecuteCommand extends ContainerAwareCommand
         ];
 
         $command->run(new ArrayInput($arguments), $output);
+
+        return 1;
     }
 }
