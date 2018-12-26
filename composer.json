@@ -22,7 +22,7 @@
   "require": {
     "php": ">=5.6",
     "doctrine/orm": "^2.5",
-    "knplabs/gaufrette": "^0.5",
+    "knplabs/gaufrette": "^0.5|^0.6|^0.7",
     "knplabs/knp-paginator-bundle": "^2.5",
     "lexik/form-filter-bundle": "^5.0",
     "symfony/asset": "^2.7|^3.0",

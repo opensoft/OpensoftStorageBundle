@@ -3,12 +3,12 @@
 namespace Opensoft\StorageBundle\Tests\Storage;
 
 
+use Gaufrette\Adapter\Local;
 use Gaufrette\Filesystem;
 use function GuzzleHttp\Psr7\stream_for;
 use GuzzleHttp\Psr7\StreamWrapper;
 use Opensoft\StorageBundle\Entity\Storage;
 use Opensoft\StorageBundle\Entity\StorageFile;
-use Opensoft\StorageBundle\Storage\Gaufrette\Adapter\Local;
 
 class StorageFileTest extends \PHPUnit_Framework_TestCase
 {
