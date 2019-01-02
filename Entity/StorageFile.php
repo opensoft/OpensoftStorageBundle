@@ -2,6 +2,7 @@
 
 namespace Opensoft\StorageBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Gaufrette\File as GaufretteFile;
 use Gaufrette\Filesystem;
@@ -81,6 +82,14 @@ class StorageFile extends GaufretteFile
     private $contentHash;
 
     /**
+     * @var StorageMoveException[]
+     *
+     * @ORM\OneToMany(targetEntity="Opensoft\StorageBundle\Entity\StorageMoveException", mappedBy="storageFile")
+     * @ORM\OrderBy({"createdAt" = "DESC"})
+     */
+    private $moveExceptions;
+
+    /**
      * Constructor
      *
      * @param string $key
@@ -92,6 +101,7 @@ class StorageFile extends GaufretteFile
         parent::__construct($key, $filesystem);
         $this->storage = $storage;
         $this->createdAt = new \DateTime();
+        $this->moveExceptions = new ArrayCollection();
     }
 
     /**
@@ -259,6 +269,14 @@ class StorageFile extends GaufretteFile
     public function setType($type)
     {
         $this->type = $type;
+    }
+
+    /**
+     * @return ArrayCollection|StorageMoveException[]
+     */
+    public function getMoveExceptions()
+    {
+        return $this->moveExceptions;
     }
 
     /**

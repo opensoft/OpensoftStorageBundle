@@ -4,9 +4,11 @@ namespace Opensoft\StorageBundle\Command;
 
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Query\Expr\Join;
 use Opensoft\StorageBundle\Entity\Storage;
 use Opensoft\StorageBundle\Entity\StorageFile;
 use Opensoft\Onp\Bundle\CoreBundle\Task\Type\CommandTask;
+use Opensoft\StorageBundle\Entity\StorageMoveException;
 use Opensoft\StorageBundle\Entity\StoragePolicy;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -103,12 +105,16 @@ class PolicyExecuteCommand extends ContainerAwareCommand
 
         $qb = $em->createQueryBuilder()
             ->select('s')
+            ->distinct()
             ->from(StorageFile::class, 's')
+            ->leftJoin('s.moveExceptions', 'm', Join::WITH, 'm.fromStorage = :fromStorageId AND m.toStorage = :toStorageId')
             ->andWhere('s.storage = :fromStorageId')
             ->andWhere('s.type = :fileType')
             ->andWhere('s.createdAt < :olderThan')
+            ->andWhere('m.id IS NULL')
             ->setParameters([
                 'fromStorageId' => $fromStorage->getId(),
+                'toStorageId' => $toStorage->getId(),
                 'fileType' => $type,
                 'olderThan' => new \DateTime($moveInterval . ' ago')
             ])

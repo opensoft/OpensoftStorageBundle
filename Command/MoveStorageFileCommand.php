@@ -4,6 +4,7 @@ namespace Opensoft\StorageBundle\Command;
 
 use Opensoft\StorageBundle\Entity\Storage;
 use Opensoft\StorageBundle\Entity\StorageFile;
+use Opensoft\StorageBundle\Entity\StorageMoveException;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -63,6 +64,8 @@ class MoveStorageFileCommand extends ContainerAwareCommand
             return -1;
         }
 
+        $fromStorage = $storageFile->getStorage();
+
         $em = $doctrine->getManager();
         $em->getConnection()->beginTransaction();
 
@@ -91,14 +94,17 @@ class MoveStorageFileCommand extends ContainerAwareCommand
 
             $em->persist($storageFile);
             $em->flush();
-            $em->clear();
             $em->getConnection()->commit();
 
             $output->writeln(sprintf("Done moving file %d", $storageFile->getId()));
         } catch (\Exception $e) {
-            $em->clear();
             $em->getConnection()->rollBack();
             $logger->critical($e);
+
+            // This usually happens in the $storageManager->moveStorageFile function, but we've suspended transactions, execute it here.
+            $moveException = new StorageMoveException($storageFile, $fromStorage, $destinationStorage, $e);
+            $em->persist($moveException);
+            $em->flush();
 
             return -1;
         }
