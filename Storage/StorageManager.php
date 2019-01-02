@@ -8,6 +8,7 @@ use Gaufrette\Filesystem;
 use Gaufrette\StreamWrapper;
 use Opensoft\StorageBundle\Entity\Storage;
 use Opensoft\StorageBundle\Entity\StorageFile;
+use Opensoft\StorageBundle\Entity\StorageMoveException;
 use Opensoft\StorageBundle\Entity\StoragePolicy;
 use Psr\Http\Message\StreamInterface;
 use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesser;
@@ -283,44 +284,55 @@ class StorageManager implements StorageManagerInterface
         $file->setFilesystem($this->getFilesystemForStorage($toStorage));
         $file->setStorage($toStorage);
 
-        $bytes = $this->streamCopy(
-            $this->getIOStream($fromStorage->getSlug(), $file->getKey()),
-            $this->getIOStream($toStorage->getSlug(), $file->getKey())
-        );
-
-        if ($bytes == 0) {
-            throw new \RuntimeException(
-                sprintf(
-                    "Unable to copy file from storage '%s' with key '%s' to storage '%s' with key '%s'.  Zero bytes copied.",
-                    $fromStorage->getName(),
-                    $file->getKey(),
-                    $toStorage->getName(),
-                    $file->getKey()
-                )
+        try {
+            $bytes = $this->streamCopy(
+                $this->getIOStream($fromStorage->getSlug(), $file->getKey()),
+                $this->getIOStream($toStorage->getSlug(), $file->getKey())
             );
-        }
 
-        if (!$file->exists()) {
-            throw new \RuntimeException(
-                sprintf(
-                    "Could not stream copy file from storage '%s' with key '%s' to storage '%s' with key '%s'.",
-                    $fromStorage->getName(),
-                    $file->getKey(),
-                    $toStorage->getName(),
-                    $file->getKey()
-                )
-            );
-        }
+            if ($bytes == 0) {
+                throw new \RuntimeException(
+                    sprintf(
+                        "Unable to copy file from storage '%s' with key '%s' to storage '%s' with key '%s'.  Zero bytes copied.",
+                        $fromStorage->getName(),
+                        $file->getKey(),
+                        $toStorage->getName(),
+                        $file->getKey()
+                    )
+                );
+            }
+
+            if (!$file->exists()) {
+                throw new \RuntimeException(
+                    sprintf(
+                        "Could not stream copy file from storage '%s' with key '%s' to storage '%s' with key '%s'.",
+                        $fromStorage->getName(),
+                        $file->getKey(),
+                        $toStorage->getName(),
+                        $file->getKey()
+                    )
+                );
+            }
 
 
-        if (!unlink($this->getIOStream($fromStorage->getSlug(), $file->getKey()))) {
-            throw new \RuntimeException(
-                sprintf(
-                    "Could not delete original file from storage '%s' and key '%s' after copy.",
-                    $fromStorage->getName(),
-                    $file->getKey()
-                )
-            );
+            if (!unlink($this->getIOStream($fromStorage->getSlug(), $file->getKey()))) {
+                throw new \RuntimeException(
+                    sprintf(
+                        "Could not delete original file from storage '%s' and key '%s' after copy.",
+                        $fromStorage->getName(),
+                        $file->getKey()
+                    )
+                );
+            }
+        } catch (\Exception $e) {
+            $moveException = new StorageMoveException($file, $fromStorage, $toStorage, $e);
+
+            /** @var EntityManager $em */
+            $em = $this->doctrine->getManager();
+            $em->persist($moveException);
+            $em->flush();
+
+            throw $e;
         }
 
         $this->saveToDatabase($file);
