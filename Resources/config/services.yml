@@ -2,26 +2,46 @@ services:
     ####################
     # Public Services ##
     ####################
-    storage_manager:
-        class: Opensoft\StorageBundle\Storage\StorageManager
+    Opensoft\StorageBundle\Storage\StorageManager:
+        public: true
         arguments:
             - '@doctrine'
             - '@opensoft_storage.gaufrette_adapter_resolver'
             - '@opensoft_storage.url_resolver'
             - '@opensoft_storage.key_generator'
             - '@opensoft_storage.storage_type_provider'
+    storage_manager:
+        alias: Opensoft\StorageBundle\Storage\StorageManager
+        public: true
+
+    ###############
+    # Controllers #
+    ###############
+
+    Opensoft\StorageBundle\Controller\StorageController:
+        public: true
+        arguments:
+            - '@doctrine'
+
+    #####################
+    # Private Services ##
+    #####################
+
     opensoft_storage.gaufrette_adapter_resolver:
         class: Opensoft\StorageBundle\Storage\GaufretteAdapterResolver
+        public: false
 
     # Form Types
     storage.form_type.storage_adapter_options_type:
         class: Opensoft\StorageBundle\Form\Type\StorageAdapterOptionsType
+        public: false
         arguments:
             - '@opensoft_storage.gaufrette_adapter_resolver'
         tags:
             - { name: 'form.type' }
     storage.form_type.stored_files_filter_type:
         class: Opensoft\StorageBundle\Form\Type\StoredFilesFilterType
+        public: false
         arguments:
             - '@opensoft_storage.storage_type_provider'
         tags:
@@ -30,6 +50,7 @@ services:
     # Early request listener for permanent URL redirection support
     opensoft_storage.early_request_listener:
         class: Opensoft\StorageBundle\EventListener\RequestListener
+        public: false
         arguments:
             - '@doctrine'
             - '@opensoft_storage.storage_type_provider'
@@ -37,9 +58,6 @@ services:
         tags:
             - { name: 'kernel.event_subscriber', lazy: true }
 
-    #####################
-    # Private Services ##
-    #####################
     opensoft_storage.checks.local_storage:
         class: Opensoft\StorageBundle\Check\LocalStorageCheck
         public: false

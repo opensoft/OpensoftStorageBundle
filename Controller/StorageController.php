@@ -2,6 +2,7 @@
 
 namespace Opensoft\StorageBundle\Controller;
 
+use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManager;
 use Lexik\Bundle\FormFilterBundle\Filter\FilterBuilderUpdaterInterface;
 use Opensoft\StorageBundle\Entity\StorageFile;
@@ -11,31 +12,41 @@ use Opensoft\StorageBundle\Storage\GaufretteAdapterResolver;
 use Opensoft\StorageBundle\Form\Type\StoragePolicyFormType;
 use Opensoft\StorageBundle\Form\Type\StorageType;
 use Opensoft\StorageBundle\Form\Type\StoredFilesFilterType;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * @author Richard Fullmer <richard.fullmer@opensoftdev.com>
  */
-class StorageController extends Controller
+class StorageController extends AbstractController
 {
     const FILES_PER_PAGE = 30;
+
+    private $doctrine;
+
+    /**
+     * @param ManagerRegistry $doctrine
+     */
+    public function __construct(ManagerRegistry $doctrine)
+    {
+        $this->doctrine = $doctrine;
+    }
 
     /**
      * @Route("/admin/storage", name="opensoft_storage_list_storages")
      */
     public function listAction()
     {
-        $storages = $this->getDoctrine()->getRepository(Storage::class)->findBy([], ['createdAt' => 'asc']);
+        $storages = $this->doctrine->getRepository(Storage::class)->findBy([], ['createdAt' => 'asc']);
 
         return $this->render("@OpensoftStorage/storage/list.html.twig", [
             'storages' => $storages,
             'adapterResolver' => $this->getAdapterResolver(),
-            'storageCounter' => $this->getDoctrine()->getRepository(StorageFile::class)
+            'storageCounter' => $this->doctrine->getRepository(StorageFile::class)
         ]);
     }
 
@@ -79,13 +90,16 @@ class StorageController extends Controller
 
     /**
      * @Route("/admin/storage/create", name="opensoft_storage_create_storage")
-     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Request $request
      * @return Response|RedirectResponse
      */
     public function createAction(Request $request)
     {
+        if (!$this->isGranted('ROLE_ADMIN_STORAGE_MANAGER')) {
+            throw new AccessDeniedException();
+        }
+
         return $this->handleFormRequest($request, new Storage());
     }
 
@@ -134,7 +148,6 @@ class StorageController extends Controller
 
     /**
      * @Route("/admin/storage/{id}/edit", name="opensoft_storage_edit_storage", requirements={"id" = "\d+"})
-     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Storage $storage
      * @param Request $request
@@ -142,18 +155,25 @@ class StorageController extends Controller
      */
     public function editAction(Storage $storage, Request $request)
     {
+        if (!$this->isGranted('ROLE_ADMIN_STORAGE_MANAGER')) {
+            throw new AccessDeniedException();
+        }
+
         return $this->handleFormRequest($request, $storage);
     }
 
     /**
      * @Route("/admin/storage/{id}/activate", name="opensoft_storage_activate_storage", requirements={"id" = "\d+"})
-     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Storage $storage
      * @return RedirectResponse
      */
     public function activateAction(Storage $storage)
     {
+        if (!$this->isGranted('ROLE_ADMIN_STORAGE_MANAGER')) {
+            throw new AccessDeniedException();
+        }
+
         $storage->setActive(true);
 
         $this->persist($storage, true);
@@ -163,13 +183,16 @@ class StorageController extends Controller
 
     /**
      * @Route("/admin/storage/{id}/deactivate", name="opensoft_storage_deactivate_storage", requirements={"id" = "\d+"})
-     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Storage $storage
      * @return RedirectResponse
      */
     public function deactivateAction(Storage $storage)
     {
+        if (!$this->isGranted('ROLE_ADMIN_STORAGE_MANAGER')) {
+            throw new AccessDeniedException();
+        }
+
         $activeStorages = $this->getDoctrine()->getRepository(Storage::class)->findBy(['active' => true]);
         if (count($activeStorages) == 1) {
             $this->addFlash('danger', 'There must be at least one active storage');
@@ -185,13 +208,16 @@ class StorageController extends Controller
 
     /**
      * @Route("/admin/storage/{id}/delete", name="opensoft_storage_delete_storage", requirements={"id" = "\d+"})
-     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Storage $storage
      * @return RedirectResponse
      */
     public function deleteAction(Storage $storage)
     {
+        if (!$this->isGranted('ROLE_ADMIN_STORAGE_MANAGER')) {
+            throw new AccessDeniedException();
+        }
+
         $doctrine = $this->getDoctrine();
         $stats = $doctrine->getRepository(StorageFile::class)->statsByStorage($storage);
         if ($stats['file_count'] > 0) {
@@ -226,7 +252,6 @@ class StorageController extends Controller
 
     /**
      * @Route("/admin/storage/policies/{type}/create", name="opensoft_storage_create_storage_policy", requirements={"type" = "\d+"})
-     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Request $request
      * @param integer $type
@@ -234,6 +259,10 @@ class StorageController extends Controller
      */
     public function createPolicyAction(Request $request, $type)
     {
+        if (!$this->isGranted('ROLE_ADMIN_STORAGE_MANAGER')) {
+            throw new AccessDeniedException();
+        }
+
         $availableTypes = $this->get('opensoft_storage.storage_type_provider')->getTypes();
         if (!isset($availableTypes[$type])) {
             throw $this->createNotFoundException(sprintf("Type '%d' is not a valid type", $type));
@@ -261,7 +290,6 @@ class StorageController extends Controller
 
     /**
      * @Route("/admin/storage/policies/{id}/edit", name="opensoft_storage_edit_storage_policy", requirements={"id" = "\d+"})
-     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param Request $request
      * @param StoragePolicy $storagePolicy
@@ -269,6 +297,10 @@ class StorageController extends Controller
      */
     public function editPolicyAction(Request $request, StoragePolicy $storagePolicy)
     {
+        if (!$this->isGranted('ROLE_ADMIN_STORAGE_MANAGER')) {
+            throw new AccessDeniedException();
+        }
+
         $availableTypes = $this->get('opensoft_storage.storage_type_provider')->getTypes();
         $form = $this->createForm(StoragePolicyFormType::class, $storagePolicy);
         $form->handleRequest($request);
@@ -290,13 +322,16 @@ class StorageController extends Controller
 
     /**
      * @Route("/admin/storage/policies/{id}/delete", name="opensoft_storage_delete_storage_policy", requirements={"id" = "\d+"})
-     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param StoragePolicy $storagePolicy
      * @return RedirectResponse
      */
     public function deletePolicyAction(StoragePolicy $storagePolicy)
     {
+        if (!$this->isGranted('ROLE_ADMIN_STORAGE_MANAGER')) {
+            throw new AccessDeniedException();
+        }
+
         $em = $this->getDoctrine()->getManager();
         $em->remove($storagePolicy);
         $em->flush();
@@ -323,13 +358,16 @@ class StorageController extends Controller
 
     /**
      * @Route("/admin/storage-file/{id}/delete", name="opensoft_storage_delete_storage_file", requirements={"id" = "\d+"})
-     * @Security("has_role('ROLE_ADMIN_STORAGE_MANAGER')")
      *
      * @param StorageFile $file
      * @return Response
      */
     public function deleteFileAction(StorageFile $file)
     {
+        if (!$this->isGranted('ROLE_ADMIN_STORAGE_MANAGER')) {
+            throw new AccessDeniedException();
+        }
+
         $fileId = $file->getId();
         $em = $this->getDoctrine()->getManager();
         try {

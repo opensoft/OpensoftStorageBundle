@@ -36,7 +36,8 @@ class HashingStream implements StreamInterface
      * @param callable        $onComplete Function invoked when the
      *                                    hash calculation is completed.
      */
-    public function __construct(StreamInterface $stream, callable $onComplete) {
+    public function __construct(StreamInterface $stream, callable $onComplete)
+    {
         $this->stream = $stream;
         $this->callback = $onComplete;
     }
@@ -59,11 +60,12 @@ class HashingStream implements StreamInterface
     {
         if ($offset === 0) {
             $this->reset();
+
             return $this->stream->seek($offset);
-        } else {
-            // Seeking arbitrarily is not supported.
-            return false;
         }
+
+        // Seeking arbitrarily is not supported.
+        return false;
     }
 
     private function getContext()
