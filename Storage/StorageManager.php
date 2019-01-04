@@ -86,6 +86,7 @@ class StorageManager implements StorageManagerInterface
         if ($unlinkAfterStore !== false) {
             $options['unlinkAfterStore'] = $unlinkAfterStore;
         }
+
         return $this->store($type, $uploadedFile, $options);
     }
 
@@ -101,6 +102,7 @@ class StorageManager implements StorageManagerInterface
         if ($unlinkAfterStore !== false) {
             $options['unlinkAfterStore'] = $unlinkAfterStore;
         }
+
         return $this->store($type, $path, $options);
     }
 
@@ -134,130 +136,6 @@ class StorageManager implements StorageManagerInterface
     }
 
     /**
-     * @param StorageFile $file
-     * @param UploadedFile|StreamInterface|string $content
-     * @param array $options
-     */
-    private function storeFileContent(StorageFile $file, $content, $options = [])
-    {
-        $storage = $file->getStorage();
-
-        $metadata = $options['metadata'];
-
-        if (!empty($options['realPath'])) {
-            $path = $options['realPath'];
-            $bytes = $this->streamCopy($path, $this->getIOStream($storage->getSlug(), $file->getKey()));
-
-            $file->setContentHash(md5_file($path));
-            $file->setSize($bytes);
-
-            if (empty($metadata['ContentType'])) {
-                $metadata['ContentType'] = MimeTypeGuesser::getInstance()->guess($path);
-            }
-
-            $file->setFileMetadata($metadata);
-        } else {
-            if (empty($metadata['ContentType'])) {
-                $metadata['ContentType'] = 'binary/octet-stream';
-            }
-
-            $bytes = $file->setContent($content, $metadata);
-        }
-
-        $file->setMimeType($metadata['ContentType']);
-
-        if ($bytes == 0) {
-            throw new \RuntimeException(
-                sprintf(
-                    "Unable to stream file to storage '%s' with key '%s'.  Zero bytes streamed.",
-                    $storage->getName(),
-                    $file->getKey()
-                )
-            );
-        }
-
-        if (!$file->exists()) {
-            throw new \RuntimeException(
-                sprintf(
-                    "Could not stream to storage '%s' with key '%s'.  Resultant file does not exist.",
-                    $storage->getName(),
-                    $file->getKey()
-                )
-            );
-        }
-
-        $this->unlinkIfNeeded($options);
-    }
-
-    /**
-     * Return generated filename
-     *
-     * @param array $options
-     * @return string
-     */
-    private function getFilename($options)
-    {
-        if (!empty($options['newFilename'])) {
-            return $options['newFilename'];
-        }
-
-        if (!empty($options['originalFilename'])) {
-            $path = $options['originalFilename'];
-        } else if (!empty($options['realPath'])) {
-            $path = $options['realPath'];
-        } else {
-            $path = uniqid();
-        }
-
-        $newFilename = uniqid('gen' . substr(hash('sha256', $path), 0, 4));
-
-        $extension = pathinfo($path, PATHINFO_EXTENSION);
-        if ($extension != null) {
-            $newFilename .= '.' . $extension;
-        }
-
-        return $newFilename;
-    }
-
-    /**
-     * Enrich options with available content metadata
-     *
-     * @param UploadedFile|StreamInterface|string $content
-     * @param array $options
-     * @return array
-     */
-    private function getContentOptions($content, $options = [])
-    {
-        if ($content instanceof UploadedFile) {
-            $options['realPath'] = $content->getRealPath();
-            $options['originalFilename'] = $content->getClientOriginalName();
-            $options['metadata']['ContentType'] = $content->getClientMimeType();
-        } else if (is_string($content)) {
-            $options['realPath'] = $content;
-        }
-
-        return $options;
-    }
-
-    /**
-     * Unlink original file if real path is known and unlink param is present
-     *
-     * @param array $options
-     */
-    private function unlinkIfNeeded($options)
-    {
-        if (empty($options['realPath'])) {
-            return;
-        }
-
-        if ($options['unlinkAfterStore'] === false) {
-            return;
-        }
-
-        unlink($options['realPath']);
-    }
-
-    /**
      *
      *
      * @param StorageFile $file
@@ -274,29 +152,43 @@ class StorageManager implements StorageManagerInterface
      *
      * @param StorageFile $file
      * @param Storage $toStorage
-     * @throws \RuntimeException If the move fails
+     * @throws \Exception If the move fails
      * @return StorageFile
      */
     public function moveStorageFile(StorageFile $file, Storage $toStorage)
     {
         $fromStorage = $file->getStorage();
 
-        $file->setFilesystem($this->getFilesystemForStorage($toStorage));
-        $file->setStorage($toStorage);
-
         try {
+            $toStorageFilesystem = $this->getFilesystemForStorage($toStorage);
+
             $bytes = $this->streamCopy(
                 $this->getIOStream($fromStorage->getSlug(), $file->getKey()),
                 $this->getIOStream($toStorage->getSlug(), $file->getKey())
             );
 
-            if ($bytes == 0) {
+            if ($bytes === 0) {
                 throw new \RuntimeException(
                     sprintf(
                         "Unable to copy file from storage '%s' with key '%s' to storage '%s' with key '%s'.  Zero bytes copied.",
                         $fromStorage->getName(),
                         $file->getKey(),
                         $toStorage->getName(),
+                        $file->getKey()
+                    )
+                );
+            }
+
+            $file->setFilesystem($toStorageFilesystem);
+
+            if ($file->getSize() !== $bytes) {
+                @unlink($this->getIOStream($fromStorage->getSlug(), $file->getKey()));
+
+                throw new \RuntimeException(
+                    sprintf(
+                        "Unexpectedly copied '%d' bytes instead of the expected '%d' for storage key '%s'.",
+                        $bytes,
+                        $file->getSize(),
                         $file->getKey()
                     )
                 );
@@ -314,28 +206,29 @@ class StorageManager implements StorageManagerInterface
                 );
             }
 
+            $file->setStorage($toStorage);
+            $this->saveToDatabase($file);
 
-            if (!unlink($this->getIOStream($fromStorage->getSlug(), $file->getKey()))) {
-                throw new \RuntimeException(
-                    sprintf(
-                        "Could not delete original file from storage '%s' and key '%s' after copy.",
-                        $fromStorage->getName(),
-                        $file->getKey()
-                    )
-                );
-            }
         } catch (\Exception $e) {
             $moveException = new StorageMoveException($file, $fromStorage, $toStorage, $e);
 
             /** @var EntityManager $em */
             $em = $this->doctrine->getManager();
             $em->persist($moveException);
-            $em->flush();
+            $em->flush($moveException);
 
             throw $e;
         }
 
-        $this->saveToDatabase($file);
+        if (!unlink($this->getIOStream($fromStorage->getSlug(), $file->getKey()))) {
+            throw new \RuntimeException(
+                sprintf(
+                    "Could not delete original file from storage '%s' and key '%s' after copy.",
+                    $fromStorage->getName(),
+                    $file->getKey()
+                )
+            );
+        }
 
         return $file;
     }
@@ -375,10 +268,33 @@ class StorageManager implements StorageManagerInterface
             $destinationPath
         );
 
-        if ($bytes == 0) {
+        if ($bytes === 0) {
             throw new \RuntimeException(
                 sprintf(
                     "Unable to copy file from storage '%s' with key '%s' to local path '%s'.  Zero bytes copied.",
+                    $file->getStorage()->getName(),
+                    $file->getKey(),
+                    $destinationPath
+                )
+            );
+        }
+        if ($file->getSize() !== $bytes) {
+            @unlink($destinationPath);
+
+            throw new \RuntimeException(
+                sprintf(
+                    "Unexpectedly copied '%d' bytes instead of the expected '%d' for storage key '%s'.",
+                    $bytes,
+                    $file->getSize(),
+                    $file->getKey()
+                )
+            );
+        }
+
+        if (!file_exists($destinationPath)) {
+            throw new \RuntimeException(
+                sprintf(
+                    "Could not stream copy file from storage '%s' with key '%s' to destination '%s'.",
                     $file->getStorage()->getName(),
                     $file->getKey(),
                     $destinationPath
@@ -457,6 +373,130 @@ class StorageManager implements StorageManagerInterface
 
     /**
      * @param StorageFile $file
+     * @param UploadedFile|StreamInterface|string $content
+     * @param array $options
+     */
+    private function storeFileContent(StorageFile $file, $content, $options = [])
+    {
+        $storage = $file->getStorage();
+
+        $metadata = $options['metadata'];
+
+        if (!empty($options['realPath'])) {
+            $path = $options['realPath'];
+            $bytes = $this->streamCopy($path, $this->getIOStream($storage->getSlug(), $file->getKey()));
+
+            $file->setContentHash(md5_file($path));
+            $file->setSize($bytes);
+
+            if (empty($metadata['ContentType'])) {
+                $metadata['ContentType'] = MimeTypeGuesser::getInstance()->guess($path);
+            }
+
+            $file->setFileMetadata($metadata);
+        } else {
+            if (empty($metadata['ContentType'])) {
+                $metadata['ContentType'] = 'binary/octet-stream';
+            }
+
+            $bytes = $file->setContent($content, $metadata);
+        }
+
+        $file->setMimeType($metadata['ContentType']);
+
+        if ($bytes === 0) {
+            throw new \RuntimeException(
+                sprintf(
+                    "Unable to stream file to storage '%s' with key '%s'.  Zero bytes streamed.",
+                    $storage->getName(),
+                    $file->getKey()
+                )
+            );
+        }
+
+        if (!$file->exists()) {
+            throw new \RuntimeException(
+                sprintf(
+                    "Could not stream to storage '%s' with key '%s'.  Resultant file does not exist.",
+                    $storage->getName(),
+                    $file->getKey()
+                )
+            );
+        }
+
+        $this->unlinkIfNeeded($options);
+    }
+
+    /**
+     * Return generated filename
+     *
+     * @param array $options
+     * @return string
+     */
+    private function getFilename($options)
+    {
+        if (!empty($options['newFilename'])) {
+            return $options['newFilename'];
+        }
+
+        if (!empty($options['originalFilename'])) {
+            $path = $options['originalFilename'];
+        } else if (!empty($options['realPath'])) {
+            $path = $options['realPath'];
+        } else {
+            $path = uniqid();
+        }
+
+        $newFilename = uniqid('gen' . substr(hash('sha256', $path), 0, 4));
+
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        if ($extension != null) {
+            $newFilename .= '.' . $extension;
+        }
+
+        return $newFilename;
+    }
+
+    /**
+     * Enrich options with available content metadata
+     *
+     * @param UploadedFile|StreamInterface|string $content
+     * @param array $options
+     * @return array
+     */
+    private function getContentOptions($content, $options = [])
+    {
+        if ($content instanceof UploadedFile) {
+            $options['realPath'] = $content->getRealPath();
+            $options['originalFilename'] = $content->getClientOriginalName();
+            $options['metadata']['ContentType'] = $content->getClientMimeType();
+        } elseif (is_string($content)) {
+            $options['realPath'] = $content;
+        }
+
+        return $options;
+    }
+
+    /**
+     * Unlink original file if real path is known and unlink param is present
+     *
+     * @param array $options
+     */
+    private function unlinkIfNeeded($options)
+    {
+        if (empty($options['realPath'])) {
+            return;
+        }
+
+        if ($options['unlinkAfterStore'] === false) {
+            return;
+        }
+
+        unlink($options['realPath']);
+    }
+
+    /**
+     * @param StorageFile $file
      * @return resource
      */
     private function retrieveContext(StorageFile $file)
@@ -485,12 +525,11 @@ class StorageManager implements StorageManagerInterface
 
         $storage = $this->doctrine->getRepository(Storage::class)->findOneByActive();
         if ($storage === null) {
-            throw new \UnexpectedValueException("No default write storage locations present");
+            throw new \UnexpectedValueException('No default write storage locations present');
         }
 
         return $storage;
     }
-
 
     /**
      * Retrieve a PHP internal I/O Stream identifier for use with php stream related functions
@@ -509,12 +548,13 @@ class StorageManager implements StorageManagerInterface
      *
      * @param string $sourceStream
      * @param string $destinationStream
-     * @return integer The number of bytes copied
+     * @throws \RuntimeException
+     * @return int The number of bytes copied or false on failure
      */
     private function streamCopy($sourceStream, $destinationStream)
     {
-        $src = fopen($sourceStream, 'rb');
-        $dest = fopen($destinationStream, 'wb');
+        $src = $this->try_fopen($sourceStream, 'rb');
+        $dest = $this->try_fopen($destinationStream, 'wb');
 
         // stream copy to avoid a memory hit
         $bytes = stream_copy_to_stream($src, $dest);
@@ -522,6 +562,10 @@ class StorageManager implements StorageManagerInterface
         fclose($src);
         fclose($dest);
         unset($src, $dest);
+
+        if ($bytes === false) {
+            throw new \RuntimeException('Failed to copy from source to destination stream. ' . self::getLastError());
+        }
 
         return $bytes;
     }
@@ -549,6 +593,9 @@ class StorageManager implements StorageManagerInterface
         }
     }
 
+    /**
+     * @return OptionsResolver
+     */
     private function getOptionsResolver()
     {
         $resolver = new OptionsResolver();
@@ -569,5 +616,49 @@ class StorageManager implements StorageManagerInterface
         $resolver->setDefault('metadata', []);
 
         return $resolver;
+    }
+
+
+    /**
+     * Safely opens a PHP stream resource using a filename.
+     *
+     * When fopen fails, PHP normally raises a warning. This function adds an
+     * error handler that checks for errors and throws an exception instead.
+     *
+     * @param string $filename File to open
+     * @param string $mode     Mode used to open the file
+     *
+     * @return resource
+     * @throws \RuntimeException if the file cannot be opened
+     */
+    private function try_fopen($filename, $mode)
+    {
+        $ex = null;
+        set_error_handler(function () use ($filename, $mode, &$ex) {
+            $ex = new \RuntimeException(sprintf(
+                'Unable to open %s using mode %s: %s',
+                $filename,
+                $mode,
+                func_get_args()[1]
+            ));
+        });
+
+        $handle = fopen($filename, $mode);
+        restore_error_handler();
+
+        if ($ex) {
+            /** @var $ex \RuntimeException */
+            throw $ex;
+        }
+
+        return $handle;
+    }
+
+    /**
+     * @return string|string[]|null
+     */
+    private static function getLastError()
+    {
+        return preg_replace('#^\w+\(.*?\): #', '', error_get_last()['message']);
     }
 }
