@@ -85,7 +85,7 @@ class LocalStorageCheck implements CheckInterface
 
             // Ensure that each adapter is writeable.
             $fs = $this->storageManager->getFilesystemForStorage($storage);
-            $filename = 'test_tmp_file_monitor.bak';
+            $filename = sprintf('%s.bak', uniqid('test_tmp_', false));
 
             try {
                 $bytesWritten = $fs->write($filename, 'content', true);
