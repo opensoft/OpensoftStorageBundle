@@ -1,0 +1,39 @@
+services:
+
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        public: false       # Allows optimizing the container by removing unused services; this also means
+                            # fetching services directly from the container via $container->get() won't work.
+                            # The best practice is to be explicit about your dependencies anyway.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    Opensoft\StorageBundle\:
+        resource: '../../*'
+        exclude: '../../{Entity}'
+
+    ## Public interfaces
+    Opensoft\StorageBundle\Storage\StorageManager:
+        public: true
+
+    Opensoft\StorageBundle\Storage\StorageManagerInterface:
+        alias: 'Opensoft\StorageBundle\Storage\StorageManager'
+        public: true
+
+
+    Opensoft\StorageBundle\Storage\RequestMatcher\HttpHostRequestMatcher:
+        arguments:
+            $httpHost: '%opensoft_storage.parameter.permanent.http_host%'
+
+    ## Adapters
+    Opensoft\StorageBundle\Storage\Adapter\LocalAdapterConfiguration:
+        arguments:
+            $permanentBaseUrl: '%opensoft_storage.parameter.permanent_base_url%'
+        tags:
+            - { name: 'opensoft_storage.adapter' }
+    Opensoft\StorageBundle\Storage\Adapter\AwsS3AdapterConfiguration:
+        arguments:
+            $permanentBaseUrl: '%opensoft_storage.parameter.permanent_base_url%'
+        tags:
+            - { name: 'opensoft_storage.adapter' }
