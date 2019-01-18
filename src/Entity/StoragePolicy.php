@@ -85,7 +85,7 @@ class StoragePolicy
     /**
      * @return int
      */
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -93,7 +93,7 @@ class StoragePolicy
     /**
      * @return DateTime
      */
-    public function getCreatedAt(): DateTime
+    public function getCreatedAt(): ?DateTime
     {
         return $this->createdAt;
     }
@@ -101,7 +101,7 @@ class StoragePolicy
     /**
      * @return int
      */
-    public function getType(): int
+    public function getType(): ?int
     {
         return $this->type;
     }
@@ -117,7 +117,7 @@ class StoragePolicy
     /**
      * @return Storage
      */
-    public function getCreateInStorage(): Storage
+    public function getCreateInStorage(): ?Storage
     {
         return $this->createInStorage;
     }
