@@ -143,6 +143,10 @@ class Storage
      */
     public function isLocal(): bool
     {
+        if (!isset($this->adapterOptions['class'])) {
+            return false;
+        }
+
         $class = $this->adapterOptions['class'];
         // BC shim to support new namespaces while extracting storage engine code into bundle
         if ($class == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\LocalAdapterConfiguration') {
