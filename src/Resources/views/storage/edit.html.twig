@@ -12,7 +12,7 @@
             <a href="{{ path('opensoft_storage_list_storages') }}">File Storage</a>
         </li>
         <li class="active">
-            <strong>{% if storage.id %}Edit{% else %}Create{% endif %} Storage Location</strong>
+            <strong>{% if storage.id is not null %}Edit{% else %}Create{% endif %} Storage Location</strong>
         </li>
     </ol>
 {% endblock %}

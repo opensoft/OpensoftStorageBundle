@@ -51,7 +51,8 @@ class StorageAdapterOptionsType extends AbstractType
                     $form->remove($formElement->getName());
                 }
             }
-            $selectedConfiguration = $this->adapterResolver->getConfigurationByClass($options['class']);
+
+            $selectedConfiguration = isset($options['class']) ? $this->adapterResolver->getConfigurationByClass($options['class']) : null;
 
             if (!$selectedConfiguration) {
                 $selectedConfiguration = $this->adapterResolver->getConfigurations()->first();

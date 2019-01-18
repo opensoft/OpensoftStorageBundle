@@ -5,7 +5,6 @@ namespace Opensoft\StorageBundle\Entity;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use Opensoft\StorageBundle\Storage\Adapter\AwsS3AdapterConfiguration;
 use Opensoft\StorageBundle\Storage\Adapter\LocalAdapterConfiguration;
 
 /**
@@ -37,7 +36,7 @@ class Storage
      *
      * @ORM\Column(type="array", name="adapter_options")
      */
-    private $adapterOptions;
+    private $adapterOptions = [];
 
     /**
      * @var bool
@@ -72,7 +71,7 @@ class Storage
     /**
      * @return int
      */
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -88,7 +87,7 @@ class Storage
     /**
      * @return string
      */
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->name;
     }
@@ -104,8 +103,12 @@ class Storage
     /**
      * @return string
      */
-    public function getAdapterType(): string
+    public function getAdapterType(): ?string
     {
+        if (!isset($this->adapterOptions['class'])) {
+            return null;
+        }
+
         $class = $this->adapterOptions['class'];
 
         return $class::getName();
@@ -114,7 +117,7 @@ class Storage
     /**
      * @return array
      */
-    public function getAdapterOptions(): array
+    public function getAdapterOptions(): ?array
     {
         return $this->adapterOptions;
     }
