@@ -143,7 +143,7 @@ class StoragePolicy
      *
      * @param string $moveAfterInterval
      */
-    public function setMoveAfterInterval(string $moveAfterInterval): void
+    public function setMoveAfterInterval(string $moveAfterInterval = null): void
     {
         $this->moveAfterInterval = $moveAfterInterval;
     }
@@ -191,7 +191,7 @@ class StoragePolicy
     /**
      * @param string $deleteAfterInterval
      */
-    public function setDeleteAfterInterval(string $deleteAfterInterval): void
+    public function setDeleteAfterInterval(string $deleteAfterInterval = null): void
     {
         $this->deleteAfterInterval = $deleteAfterInterval;
     }
