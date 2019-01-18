@@ -30,7 +30,16 @@ class AdapterResolver
      */
     public function addConfiguration(AdapterConfigurationInterface $adapterConfiguration): void
     {
-        $this->configurations->set(get_class($adapterConfiguration), $adapterConfiguration);
+        $adapterClass = get_class($adapterConfiguration);
+
+        // BC shim to support new namespaces while extracting storage engine code into bundle
+        if ($adapterClass == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\LocalAdapterConfiguration') {
+            $adapterClass = LocalAdapterConfiguration::class;
+        } elseif ($adapterClass == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\AwsS3AdapterConfiguration') {
+            $adapterClass = AwsS3AdapterConfiguration::class;
+        }
+
+        $this->configurations->set($adapterClass, $adapterConfiguration);
     }
 
     /**

@@ -84,6 +84,13 @@ class RequestListener implements EventSubscriberInterface
         /** @var AdapterConfigurationInterface|string $adapterClass */
         $adapterClass = $adapter['class'];
 
+        // BC shim to support new namespaces while extracting storage engine code into bundle
+        if ($adapterClass == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\LocalAdapterConfiguration') {
+            $adapterClass = LocalAdapterConfiguration::class;
+        } elseif ($adapterClass == 'Opensoft\Onp\Bundle\CoreBundle\Storage\Adapter\AwsS3AdapterConfiguration') {
+            $adapterClass = AwsS3AdapterConfiguration::class;
+        }
+
         if (!class_exists($adapterClass)) {
             return new Response('', Response::HTTP_NOT_FOUND);
         }
