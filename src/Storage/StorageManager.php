@@ -112,9 +112,6 @@ class StorageManager implements StorageManagerInterface
             if (!isset($options['mimetype']) || $options['mimetype'] !== null) {
                 $options['mimetype'] = Util::guessMimeType($filepath, $content);
             }
-            if (!isset($options['newFilename'])) {
-                $options['newFilename'] = basename($filepath);
-            }
         }
 
         $stream = Psr7\stream_for($content);
