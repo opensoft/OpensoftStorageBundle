@@ -20,11 +20,10 @@
     "sort-packages": true
   },
   "require": {
-    "php": ">=7.1",
+    "php": ">=7.2",
     "ext-fileinfo": "^1.0",
     "doctrine/orm": "^2.5",
     "guzzlehttp/psr7": "^1.4.1",
-    "knplabs/gaufrette": "^0.5|^0.6|^0.7",
     "knplabs/knp-paginator-bundle": "^2.5",
     "league/flysystem": "^1.0",
     "league/flysystem-aws-s3-v3": "^1.0",
