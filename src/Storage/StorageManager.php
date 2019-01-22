@@ -109,8 +109,18 @@ class StorageManager implements StorageManagerInterface
             $filepath = $content;
 
             $content = Psr7\try_fopen($filepath, 'rb');
-            if (!isset($options['mimetype']) || $options['mimetype'] !== null) {
-                $options['mimetype'] = Util::guessMimeType($filepath, $content);
+            if (!isset($options['mimetype']) || $options['mimetype'] === null) {
+                if (class_exists('finfo')) {
+                    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+
+                    $mimeType = $finfo->file($filepath) ?: null;
+                    if ($mimeType !== null) {
+                        $options['mimetype'] = $mimeType;
+                    }
+                }
+                if (!isset($options['mimetype'])) {
+                    $options['mimetype'] = Util::guessMimeType($filepath, $content);
+                }
             }
         }
 
