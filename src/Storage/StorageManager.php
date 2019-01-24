@@ -238,7 +238,18 @@ class StorageManager implements StorageManagerInterface
         $toStorageFilesystem = $this->filesystem($toStorage);
 
         try {
-            $toStorageFilesystem->writeStream($key, $fromFileStorageSystem->readStream($key));
+            $success = $toStorageFilesystem->writeStream($key, $fromFileStorageSystem->readStream($key));
+            if (!$success) {
+                throw new \RuntimeException(
+                    sprintf(
+                        "Unable to write stream from storage '%s' with key '%s' to storage '%s' with key '%s'.",
+                        $fromStorage->getName(),
+                        $key,
+                        $toStorage->getName(),
+                        $key
+                    )
+                );
+            }
             $bytes = $toStorageFilesystem->getSize($key);
 
             if ($bytes === 0) {
@@ -246,9 +257,9 @@ class StorageManager implements StorageManagerInterface
                     sprintf(
                         "Unable to copy file from storage '%s' with key '%s' to storage '%s' with key '%s'.  Zero bytes copied.",
                         $fromStorage->getName(),
-                        $file->getKey(),
+                        $key,
                         $toStorage->getName(),
-                        $file->getKey()
+                        $key
                     )
                 );
             }
