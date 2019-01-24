@@ -10,6 +10,7 @@ use Doctrine\ORM\Query\Expr\Join;
 use Opensoft\StorageBundle\Entity\Storage;
 use Opensoft\StorageBundle\Entity\StorageFile;
 use Opensoft\Onp\Bundle\CoreBundle\Task\Type\CommandTask;
+use Opensoft\Onp\Bundle\CoreBundle\Task\TaskManagerInterface;
 use Opensoft\StorageBundle\Entity\StoragePolicy;
 use Opensoft\StorageBundle\Storage\StorageFileTypeProviderInterface;
 use Symfony\Component\Console\Command\Command;
