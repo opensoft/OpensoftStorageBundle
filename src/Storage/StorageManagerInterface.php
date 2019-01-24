@@ -103,7 +103,7 @@ interface StorageManagerInterface
      * @param string $referenceType
      * @return string
      */
-    public function url(StorageFile $file, string $referenceType = StorageUrlResolverInterface::ABSOLUTE_URL): string;
+    public function url(StorageFile $file, ?string $referenceType = StorageUrlResolverInterface::ABSOLUTE_URL): string;
 
     /**
      * Returns responses for download links for any StorageFile (remote and local)
@@ -113,5 +113,5 @@ interface StorageManagerInterface
      * @param bool $isInlineDisposition
      * @return StreamedResponse|BinaryFileResponse
      */
-    public function downloadResponse(StorageFile $storageFile, array $additionalHeaders = [], bool $isInlineDisposition = false): Response;
+    public function downloadResponse(StorageFile $storageFile, array $additionalHeaders = [], ?bool $isInlineDisposition = false): Response;
 }

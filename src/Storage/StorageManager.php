@@ -217,7 +217,7 @@ class StorageManager implements StorageManagerInterface
      * @param bool|int|string $referenceType
      * @return string
      */
-    public function url(StorageFile $file, string $referenceType = StorageUrlResolverInterface::ABSOLUTE_URL): string
+    public function url(StorageFile $file, ?string $referenceType = StorageUrlResolverInterface::ABSOLUTE_URL): string
     {
         return $this->storageUrlResolver->getUrl($file, $referenceType);
     }
@@ -394,7 +394,7 @@ class StorageManager implements StorageManagerInterface
      * @param bool $isInlineDisposition
      * @return StreamedResponse|BinaryFileResponse
      */
-    public function downloadResponse(StorageFile $storageFile, array $additionalHeaders = [], bool $isInlineDisposition = false): Response
+    public function downloadResponse(StorageFile $storageFile, array $additionalHeaders = [], ?bool $isInlineDisposition = false): Response
     {
         if ($storageFile->isLocal()) {
             return new BinaryFileResponse($storageFile->getLocalPath(), 200, [], true, $isInlineDisposition ? ResponseHeaderBag::DISPOSITION_INLINE : ResponseHeaderBag::DISPOSITION_ATTACHMENT);
