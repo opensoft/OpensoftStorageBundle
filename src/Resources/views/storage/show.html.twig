@@ -1,0 +1,326 @@
+{% extends '@OpensoftStorage/layout.html.twig' %}
+
+{% from '@OpensoftStorage/macros.html.twig' import label, badge, time %}
+
+{% block opensoft_storage_title %}View Storage {{ storage.name }}{% endblock %}
+
+{% block opensoft_storage_breadcrumb %}
+    <h2>{{ storage.name }}</h2>
+    <ol class="breadcrumb">
+        {% if block('opensoft_storage_breadcrumb_prefix') is defined %}
+            {{ block('opensoft_storage_breadcrumb_prefix') }}
+        {% endif %}
+        <li>
+            <a href="{{ path('opensoft_storage_list_storages') }}">File Storage</a>
+        </li>
+        <li class="active">
+            <strong>{{ storage.name }}</strong>
+        </li>
+    </ol>
+{% endblock %}
+
+{% block opensoft_storage_breadcrumb_actions %}
+{% if is_granted('ROLE_ADMIN_STORAGE_MANAGER') %}
+    <div class="title-action">
+        <a class="btn btn-primary btn-sm" href="{{ path('opensoft_storage_edit_storage', {'id': storage.id}) }}">
+            <i class="fa fa-pencil"></i> Edit
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block opensoft_storage_content %}
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Configuration</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="table-responsive">
+                    <table class="table">
+                        {#<tr>#}
+                            {#<td ><strong>Internal Identifier</strong></td>#}
+                            {#<td class="no-borders" colspan="3">{{ storage.slug }}</td>#}
+                        {#</tr>#}
+                        <tr>
+                            <td class="no-borders"><strong>Active?</strong></td>
+                            <td class="no-borders" colspan="3">
+                                {{ label(storage.active ? 'Yes' : 'No', storage.active ? 'success' : 'warning') }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Created</strong></td>
+                            <td colspan="3">
+                                {{ time(storage.createdAt) }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong># of Files</strong></td>
+                            <td colspan="3">
+                                {{ fileCount }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Size of Files</strong></td>
+                            <td colspan="3">
+                                {{ fileSize|format_bytes }}
+                            </td>
+                        </tr>
+                        {% if adapter.usage(storage) is defined %}
+                        <tr>
+                            <td>
+                                <strong>Device Usage</strong>
+                            </td>
+                            {% set usage = adapter.usage(storage) %}
+                            <td colspan="3">
+                                {% set progressClass = 'progress-bar-info' %}
+                                {% if usage.usagepct > 60 %}
+                                    {% set progressClass = 'progress-bar-warning' %}
+                                {% elseif usage.usagepct > 90 %}
+                                    {% set progressClass = 'progress-bar-danger' %}
+                                {% endif %}
+                                <div class="progress" style="margin-bottom: 0;">
+                                    <div class="progress-bar {{ progressClass }}" style="color: black; width: {{ "%2.2f"|format(usage.usagepct) }}%" title="{{ "%2.2f"|format(usage.usagepct) }}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <td><strong>Stats By Type</strong></td>
+                            {% for thing in fileCountByType %}
+                            <td>
+                                {% if policies[thing.type] is defined and policies[thing.type].createInStorage.id == storage.id %}
+                                    <span class="fa fa-exclamation-circle" data-toggle="tooltip" title="This file type has a specific write policy to write new files to this storage."></span>
+                                {% endif %}
+                                {{ fileTypes[thing.type] }}
+                            </td>
+                            <td class="text-right">
+                                {{ thing.file_size|format_bytes }}
+                            </td>
+                            <td class="text-right">
+                                {{ badge(thing.file_count, 'primary') }}
+                            </td>
+                            {% if not loop.last %}
+                        </tr><tr><td></td>
+                            {% endif %}
+                            {% endfor %}
+                        </tr>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Adapter Options</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="table-responsive">
+                    <table class="table">
+                        {% for key, value in storage.adapterOptions %}
+                            <tr>
+                                <td{% if loop.first %} class="no-borders"{% endif %}><strong>{{ key }}</strong></td>
+                                <td{% if loop.first %} class="no-borders"{% endif %}>
+                                    {% if key not in adapterResolver.configurationByClass(storage.adapterOptions['class']).protectedOptions %}
+                                        {{ value }}
+                                    {% else %}
+                                        <span title="Redacted">************</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Stored Files</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form class="form-inline" id="filter-form" method="get" action="{{ path('opensoft_storage_show_storage', {id: storage.id}) }}">
+                        <div class="form-group">
+                            <label>File type</label>
+                            {{ form_widget(form.type) }}
+                        </div>
+                        <div class="form-group">
+                            <label>File size</label>
+
+                            <div id="file_size_hidden" class="hidden">
+                                {{ form_widget(form.size) }}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" name="file_size_condition_type" id="file_size_condition_type">
+                                <option value="any">Any size</option>
+                                <option value="lt">Less than</option>
+                                <option value="gt">Greater than</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input id="file_size_value" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" name="file_size_units" id="file_size_units">
+                                <option value="KB">KB</option>
+                                <option value="MB">MB</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" type="submit" name="submit-filter" style="vertical-align: bottom;">
+                            <i class="fa fa-filter"></i>
+                        </button>
+                    </form>
+                    <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Key</th>
+                                <th class="{{ files.isSorted('s.createdAt') ? 'sorted' : '' }} inverted">
+                                    {{ knp_pagination_sortable(files, 'Created', 's.createdAt') }}
+                                </th>
+                                <th class="text-right {{ files.isSorted('s.size') ? 'sorted' : '' }}">
+                                    {{ knp_pagination_sortable(files, 'Size (in bytes)', 's.size') }}
+                                </th>
+                                <th>Content Hash</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for file in files %}
+                            <tr>
+                                <td>{{ file.id }}</td>
+                                <td>{{ fileTypes[file.type] }}</td>
+                                <td>
+                                    <a href="{{ storage_url(file) }}">
+                                        {{ file.key }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {{ time(file.createdAt) }}
+                                </td>
+                                <td class="text-right">
+                                    <span title="{{ file.size|number_format }}">{{ file.size|format_bytes }}</span>
+                                </td>
+                                <td>{{ file.contentHash }}</td>
+                                <td>
+                                    <a class="btn btn-default btn-xs" href="{{ path('opensoft_storage_show_storage_file', {'id': file.id}) }}">
+                                        <span class="fa fa-search"></span>
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    </div>
+                    <div class="pagination">
+                        {{ knp_pagination_render(files) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block opensoft_storage_foot_script %}
+    {{ parent() }}
+    <script>
+        $(function () {
+            var $filterForm = $('#filter-form'),
+                $type = $filterForm.find('#file_size_condition_type'),
+                $units = $filterForm.find('#file_size_units'),
+                $sizeInput = $filterForm.find('#file_size_value'),
+                $hiddenSizeInput = $('#stored_files_filter_type_size');
+
+            $filterForm.on('change', updateFilters);
+            $filterForm.on('submit', validateForm);
+
+            restoreValues();
+            updateFilters();
+
+            function restoreValues() {
+                var $filterValues = $hiddenSizeInput.val().split(':'),
+                    type  = $filterValues[0],
+                    value = $filterValues[1],
+                    units = $filterValues[2];
+
+                if (!$filterValues.length) {
+                    return;
+                }
+
+                $type.find('[value=' + type + ']').prop('selected', true);
+                $units.find('[value=' + units + ']').prop('selected', true);
+                $sizeInput.val(value);
+            }
+
+            function updateFilters() {
+                var type = $type.val(),
+                    hideSizeInputs = (type === 'any'),
+                    filterStr = '';
+
+                $units.toggleClass('hidden', hideSizeInputs);
+                $sizeInput.toggleClass('hidden', hideSizeInputs);
+
+                if (type !== 'any') {
+                    filterStr = [type, $sizeInput.val(), $units.val()].join(':');
+                }
+
+                $hiddenSizeInput.val(filterStr);
+            }
+
+            function validateForm(e) {
+                if ($type.val() === 'any') {
+                    return;
+                }
+                if (+$sizeInput.val() > 0) {
+                    var fileSize = convertToBytes($sizeInput.val(), $units.val());
+                    if (fileSize < convertToBytes(2, 'GB')) {
+                        return;
+                    }
+                    alert('File size must be less than 2GB');
+                }
+
+                e.preventDefault();
+                $sizeInput.parent().addClass('has-error');
+                $sizeInput.one('change', function () {
+                    $sizeInput.parent().removeClass('has-error');
+                });
+
+                return false;
+            }
+
+            function convertToBytes(value, units) {
+                var exps = {
+                    KB: 10, MB: 20, GB: 30
+                };
+
+                return value * Math.pow(2, exps[units]);
+            }
+        });
+    </script>
+{% endblock %}

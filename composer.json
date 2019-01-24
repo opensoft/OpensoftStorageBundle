@@ -1,7 +1,7 @@
 {
   "name": "opensoft/storage-bundle",
-  "description": "An opinionated gaufrette based storage system with database level file tracking.",
-  "keywords": ["storage", "file", "gaufrette", "cloud"],
+  "description": "An opinionated file based storage system with database level file tracking.",
+  "keywords": ["storage", "file", "flysystem", "cloud"],
   "type": "symfony-bundle",
   "license": "MIT",
   "authors": [
@@ -11,30 +11,35 @@
     }
   ],
   "autoload": {
-    "psr-4": { "Opensoft\\StorageBundle\\": "" },
-    "exclude-from-classmap": [
-      "/Tests/"
-    ]
+    "psr-4": { "Opensoft\\StorageBundle\\": "src/" }
+  },
+  "autoload-dev": {
+    "psr-4": { "Opensoft\\StorageBundle\\Tests\\":  "tests/" }
   },
   "config": {
     "sort-packages": true
   },
   "require": {
-    "php": ">=5.6",
+    "php": ">=7.2",
+    "ext-fileinfo": "^1.0",
     "doctrine/orm": "^2.5",
-    "knplabs/gaufrette": "^0.5|^0.6|^0.7",
+    "guzzlehttp/psr7": "^1.4.1",
     "knplabs/knp-paginator-bundle": "^2.5",
+    "league/flysystem": "^1.0",
+    "league/flysystem-aws-s3-v3": "^1.0",
     "lexik/form-filter-bundle": "^5.0",
-    "symfony/asset": "^2.7|^3.0|^4.0",
-    "symfony/framework-bundle": "^2.7|^3.0|^4.0",
-    "symfony/validator": "^2.7|^3.0|^4.0",
-    "twig/twig": "^1.25|^2.0",
     "psr/http-message": "^1.0",
-    "guzzlehttp/psr7": "^1.4.1"
+    "symfony/asset": "^3.0|^4.0",
+    "symfony/form": "^3.0|^4.0",
+    "symfony/framework-bundle": "^3.0|^4.0",
+    "symfony/security": "^3.0|^4.0",
+    "symfony/validator": "^3.0|^4.0",
+    "symfony/var-dumper": "^3.0|^4.0",
+    "twig/twig": "^1.25|^2.0"
   },
   "require-dev": {
     "aws/aws-sdk-php": "^3.29",
-    "phpunit/phpunit": "^5.7",
+    "phpunit/phpunit": "^7.5",
     "zendframework/zenddiagnostics": "^1.0"
   }
 }

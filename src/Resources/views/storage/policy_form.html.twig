@@ -1,0 +1,34 @@
+{{ form_start(form, {'action': action}) }}
+
+    <h4>Write Policy</h4>
+    <hr />
+    {{ form_row(form.createInStorage, {'help_block': 'Specify the storage location that all files of this type will be created.'}) }}
+
+    <h4>Move Policy</h4>
+    <hr />
+    {{ form_row(form.moveAfterInterval, {'help_block': 'The storage file will be moved after this interval of time.  Please use a php parsable date string.  E.g. <code>1 month</code>'}) }}
+    {{ form_row(form.moveFromStorage) }}
+    {{ form_row(form.moveToStorage) }}
+
+    <h4>Delete Policy</h4>
+    <hr />
+    {{ form_row(form.deleteAfterInterval, {'help_block': 'After this interval has passed this storage file type will be deleted.  Use a php parsable date string.  E.g. <code>6 months</code>.
+        Please ensure you use delete policies ONLY on file types that are ephemoral and do not have to be permanently stored.  Deletes on files that other database objects strongly reference will not succeed.'}) }}
+
+    {{ form_rest(form) }}
+
+    <hr />
+    <div class="form-group">
+
+        <div class="col-sm-9 col-md-offset-3">
+            <button class="btn btn-primary" type="submit">
+                <span class="fa fa-save"></span>
+                Submit
+            </button>
+            <a class="btn btn-default" onclick="history.go(-1); return true;">
+                <span class="fa fa-ban"></span>
+                Cancel
+            </a>
+        </div>
+    </div>
+{{ form_end(form) }}
