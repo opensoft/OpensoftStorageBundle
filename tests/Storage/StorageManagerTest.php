@@ -201,7 +201,17 @@ final class StorageManagerTest extends TestCase
 
 
 
+    public function testEmptyFile(): void
+    {
+        $tempFileLocation = sys_get_temp_dir() . '/phpunit-test2';
+        file_put_contents($tempFileLocation, '');
 
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->storageManager->store(3, $tempFileLocation);
+
+        unlink($tempFileLocation);
+    }
 
 
 

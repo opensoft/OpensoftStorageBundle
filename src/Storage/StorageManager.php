@@ -96,6 +96,13 @@ class StorageManager implements StorageManagerInterface
             // do nothing
         } elseif ($content instanceof File) {
             $filepath = $content->getRealPath();
+            if (!is_file($filepath)) {
+                throw new \InvalidArgumentException(sprintf('Could not find file "%s"', $filepath));
+            }
+            if (filesize($filepath) === 0) {
+                throw new \InvalidArgumentException(sprintf('Can not create storage file from zero byte file "%s"', $filepath));
+            }
+
             if (!isset($options['mimetype'])) {
                 $options['mimetype'] = $content instanceof UploadedFile ? $content->getClientMimeType() : $content->getMimeType();
             }
@@ -104,6 +111,9 @@ class StorageManager implements StorageManagerInterface
         } elseif (is_string($content)) {
             if (!is_file($content)) {
                 throw new \InvalidArgumentException(sprintf('Could not find file "%s"', $content));
+            }
+            if (filesize($content) === 0) {
+                throw new \InvalidArgumentException(sprintf('Can not create storage file from zero byte file "%s"', $content));
             }
 
             $filepath = $content;
@@ -125,6 +135,9 @@ class StorageManager implements StorageManagerInterface
         }
 
         $stream = Psr7\stream_for($content);
+        if ($stream->getSize() === 0) {
+            throw new \InvalidArgumentException('Stream size is zero');
+        }
 
         if (!isset($options['mimetype']) && $uri = $stream->getMetadata('uri') !== null) {
             $options['mimetype'] = Psr7\mimetype_from_filename($uri);

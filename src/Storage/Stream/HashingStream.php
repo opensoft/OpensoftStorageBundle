@@ -53,7 +53,6 @@ class HashingStream implements StreamInterface
         $data = $this->stream->read($length);
         if ($this->hash === null) {
             hash_update($this->getContext(), $data);
-//            $this->size += length($data);
             if ($this->eof()) {
                 $this->hash = hash_final($this->getContext());
                 call_user_func($this->callback, $this->hash, $this->size);
