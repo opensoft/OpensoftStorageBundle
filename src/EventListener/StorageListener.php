@@ -84,21 +84,19 @@ class StorageListener implements EventSubscriber
             $fs = $this->storageManager->filesystem($file->getStorage());
             $success = $fs->delete($file->getKey());
 
-            if ($success) {
+            if (!$success) {
                 throw new \RuntimeException('Delete returned false');
             }
         } catch (FileNotFoundException $e) {
             // file doesn't exist
             $this->logger->warning(sprintf(
-                "Could not delete storage file '%s' with key '%s' from storage layer '%s':  The file does not exist",
-                $file->getId(),
+                "Could not delete storage file with key '%s' from storage layer '%s':  The file does not exist",
                 $file->getKey(),
                 $file->getStorage()->getName()
             ));
         } catch (\Exception $e) {
             $this->logger->critical(sprintf(
-                "Failed to delete storage file '%s' with key '%s' from the storage layer '%s': %s",
-                $file->getId(),
+                "Failed to delete storage file with key '%s' from the storage layer '%s': %s",
                 $file->getKey(),
                 $file->getStorage()->getName(),
                 $e->getMessage()
