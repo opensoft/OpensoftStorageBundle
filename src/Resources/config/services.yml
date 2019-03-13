@@ -37,3 +37,9 @@ services:
             $permanentBaseUrl: '%opensoft_storage.parameter.permanent_base_url%'
         tags:
             - { name: 'opensoft_storage.adapter' }
+
+    Opensoft\StorageBundle\EventListener\StorageListener:
+        public: false
+        tags:
+            - { name: 'doctrine.event_subscriber', lazy: true }
+            - { name: 'monolog.logger', channel: 'storage'}
