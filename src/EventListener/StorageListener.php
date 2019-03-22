@@ -95,12 +95,10 @@ class StorageListener implements EventSubscriber
                 $file->getStorage()->getName()
             ));
         } catch (\Exception $e) {
-            $this->logger->critical(sprintf(
-                "Failed to delete storage file with key '%s' from the storage layer '%s': %s",
-                $file->getKey(),
-                $file->getStorage()->getName(),
-                $e->getMessage()
-            ));
+            $this->logger->critical(sprintf("Failed to delete storage file: %s", $e->getMessage()));
+            $this->logger->critical($e);
+        } catch (\Throwable $e) {
+            $this->logger->critical(sprintf("Failed to delete storage file: %s", $e->getMessage()));
             $this->logger->critical($e);
         }
     }
