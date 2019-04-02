@@ -5,6 +5,7 @@ namespace Opensoft\StorageBundle\EventListener;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
+use Doctrine\ORM\Proxy\Proxy;
 use League\Flysystem\FileNotFoundException;
 use Opensoft\StorageBundle\Entity\StorageFile;
 use Opensoft\StorageBundle\Storage\StorageManagerInterface;
@@ -40,6 +41,23 @@ class StorageListener implements EventSubscriber
     {
         $this->storageManager = $storageManager;
         $this->logger = $logger;
+    }
+
+    /**
+     * Ensure removed entities have been properly proxy loaded so that deleteEntityFromStorage works
+     *
+     * @param LifecycleEventArgs $eventArgs
+     */
+    public function preRemove(LifecycleEventArgs $eventArgs): void
+    {
+        $entity = $eventArgs->getEntity();
+        if ($entity instanceof StorageFile) {
+            // doctrine <= 3 (doctrine switches to ocramius/proxy-manager in version 3)
+            if ($entity instanceof Proxy) {
+                // manually trigger a proxy load by asking for one of the class members
+                $entity->getStorage();
+            }
+        }
     }
 
     /**
@@ -111,8 +129,9 @@ class StorageListener implements EventSubscriber
     public function getSubscribedEvents(): array
     {
         return [
-            'postFlush',
-            'postRemove'
+            'preRemove',
+            'postRemove',
+            'postFlush'
         ];
     }
 }
