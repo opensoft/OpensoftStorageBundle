@@ -38,8 +38,7 @@ class StoredFilesFilterType extends AbstractType
         $builder->add('type', ChoiceType::class, [
             'placeholder' => 'All types',
             'required' => false,
-            'choices' => array_flip($this->storageFileTypeProvider->getTypes()),
-            'choices_as_values' => true,
+            'choices' => array_flip($this->storageFileTypeProvider->getTypes())
         ]);
 
         $builder->add('size', TextFilterType::class, [
